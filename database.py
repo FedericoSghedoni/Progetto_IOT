@@ -34,13 +34,15 @@ def initialize_db():
 	if not checkTableExists(connection, "meteo"):
 		cursor = connection.cursor()
 		cursor.execute("CREATE TABLE meteo (" +
-				   "date DATE, " +
-				   "hour TIME, " +
-				   "weather TEXT, " +
-				   "temperature FLOAT, " +
-				   "humidity FLOAT, " +
-				   "wind_speed FLOAT, " +
-				   "wind_dir TEXT)")
+					   "month TEXT" +
+					   "day TEXT, " +
+					   "hour TIME, " +
+					   "temperature FLOAT, " +
+					   "wind_speed FLOAT, " +
+					   "wind_dir TEXT, " +
+					   "pressure FLOAT, " +
+					   "description TEXT, " +
+					   "power FLOAT)")
 
 
 def insert_arduino(idpala, dic, date, hour):
@@ -56,11 +58,11 @@ def insert_arduino(idpala, dic, date, hour):
 	connection.commit()
 
 
-def insert_meteo(date, hour, weather, temperature, humidity, speed, direction):
+def insert_meteo(x):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
 
-	stringa = f"INSERT INTO meteo VALUES ('{date}', '{hour}', '{weather}', '{temperature}', '{humidity}', '{speed}', '{direction}')"
+	stringa = f"INSERT INTO meteo VALUES ('{x[0]}', '{x[1]}', '{x[2]}', '{x[3]}', '{x[4]}', '{x[5]}', '{x[6]}', '{x[7]}', '{x[8]}')"
 	cursor.execute(stringa)
 
 	# rendo permanenti gli INSERT
