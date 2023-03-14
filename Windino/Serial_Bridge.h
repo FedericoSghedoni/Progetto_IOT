@@ -12,12 +12,13 @@
  */
 class Serial_Bridge {
 public:
-	Serial_Bridge(String id);
+	Serial_Bridge(String zone, String id);
 	//~Serial_Bridge();
 	bool begin();
 	void print_pack(float value, String label);
 
 private:
+  String serial_zone;
 	String serial_id;
 };
 

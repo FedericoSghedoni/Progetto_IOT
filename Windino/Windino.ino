@@ -2,8 +2,10 @@
 #include <Adafruit_INA219.h>
 #include "Serial_Bridge.h"
 
+const String zone = "01";
+const String id = "001";
 Adafruit_INA219 ina219;
-Serial_Bridge bridge_connection("001");
+Serial_Bridge bridge_connection(zone, id);
 
 int revsensorPin = 3;
 int revcount = 0;

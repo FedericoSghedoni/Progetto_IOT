@@ -1,25 +1,55 @@
-from serialPort import Seriale
+import serial
+import serial.tools.list_ports
+import socket
 
 import configparser
 import requests
-import os
 import paho.mqtt.client as mqtt
 import time
 
 class Bridge():
 
-	def __init__(self):
-		thisfolder = os.path.dirname(os.path.abspath(__file__))
-		inifile = os.path.join(thisfolder, 'config.ini')
+	def __init__(self, port):
 		self.config = configparser.ConfigParser()
-		self.config.read(inifile)
-		self.seriale = Seriale()
-		self.bufferlist = {}
-		self.device = []
-		'''for i in [*self.seriale.ports]:
-			self.setupMQTT()
-			self.bufferlist[i] = []
-		self.device = [*self.seriale.ports]'''
+		self.config.read('config.ini')
+		self.buffer = []
+		self.datiZona = {}
+		self.ser = None
+		self.port = port
+		self.setupSerial(port)
+		self.setupMQTT()
+ 
+  
+	def setupSerial(self, port):        
+		try:
+			# apre la porta seriale
+			self.ser = serial.Serial(port.device, 9600, timeout=2)
+			time.sleep(2)
+			# scrive un messaggio sull'self
+			self.ser.write(b'\xff')
+			# legge la risposta dell'self
+			response = self.ser.read()
+			# verifica se l'self ha risposto correttamente
+			if response == b'\xfe':
+				print(f"Arduino connesso alla porta {port.device}")
+				# se l'self è stato trovato aggiungi il suo id al dizionario con il buffer associato, esci dal ciclo
+				size_zona = int(self.ser.read().decode())
+				self.zona = self.ser.read(size_zona).decode()
+				#size_id = int(self.ser.read().decode())
+				self.id = self.ser.read(3).decode()
+				print(self.zona, self.id)
+				self.portName = port.device
+				return True
+			else:
+				error = self.ser.read(27)
+				print(error)
+				# se l'self non ha risposto correttamente, chiude la porta seriale
+				self.ser.close()
+				print('Errore nella connessione')
+				return False
+		except (OSError, serial.SerialException):
+			pass
+
 
 	def setupMQTT(self):
 		self.clientMQTT = mqtt.Client()
@@ -38,103 +68,79 @@ class Bridge():
 
 		# Subscribing in on_connect() means that if we lose the connection and
 		# reconnect then subscriptions will be renewed.
-		key = [*self.seriale.ports]
-		count = self.diffList(key)
-		for index in count:
-			self.clientMQTT.subscribe(index + "Tsensor_0")
-			self.clientMQTT.subscribe(index + "LvLsensor_0")
-			self.clientMQTT.subscribe(index + "LvLsensor_1")
-		self.device = [*self.seriale.ports]
+		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "Tsensor_0")
+		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_0")
+		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_1")
+		self.clientMQTT.subscribe(self.zona + '/+/R_value_')
 
     # The callback for when a PUBLISH message is received from the server.
 	def on_message(self, client, userdata, msg):
 		print(msg.topic + " " + str(msg.payload))
-		for port in self.seriale.ports.keys():
-			if msg.topic == port + "LvLsensor_0":
-				if float(msg.payload.decode())<15:
-						self.seriale.ports[port].write(b'A0')
-				else:
-					self.seriale.ports[port].write(b'S0')
-			elif msg.topic == port + "Tsensor_0":
-				if float(msg.payload.decode())>15:
-						self.seriale.ports[port].write(b'A1')
-				else:
-					self.seriale.ports[port].write(b'S1')
-			elif msg.topic == port + "LvLsensor_1":
-				if float(msg.payload.decode())<15:
-						self.seriale.ports[port].write(b'A2')
-				else:
-					self.seriale.ports[port].write(b'S2')
-		#url = self.config.get("HTTP","Url") + "/newdata" + f"/{msg.topic}" + f"/{msg.payload.decode()}"
-		#try:
-		#	requests.post(url)
-		#except requests.exceptions.RequestException as e:
-		#	raise SystemExit(e)
+		if msg.topic == self.zona + '/' + self.id + '/' + "LvLsensor_0":
+			if float(msg.payload.decode())<15:
+					self.ser.write(b'A0')
+			else:
+				self.ser.write(b'S0')
+		elif msg.topic == self.zona + '/' + self.id + '/' + "Tsensor_0":
+			dati = list(self.datiZona.values())
+			media = sum(dati) / len(dati)
+			if float(msg.payload.decode())>media + 3:
+					self.ser.write(b'A1')
+			else:
+				self.ser.write(b'S1')
+		elif msg.topic == self.zona + '/' + self.id + '/' + "LvLsensor_1":
+			if float(msg.payload.decode())<15:
+					self.ser.write(b'A2')
+			else:
+				self.ser.write(b'S2')
+		elif 'R_value_' in msg.topic:
+			value = msg.payload.decode()
+			zona, id, name = msg.topic.split('/')
+			if self.id != id:
+				self.datiZona[id] = value
+		hostname = socket.gethostname()    
+		IPAddr = socket.gethostbyname(hostname)
+		url = IPAddr + "/newdata" + f"/{msg.topic}" + f"/{msg.payload.decode()}"
+		try:
+			requests.post(url)
+		except requests.exceptions.RequestException as e:
+			raise SystemExit(e)
 
-	def loop(self):
-		# infinite loop for serial managing
-		#
-		while (True):
-			#look for a byte from serial
-			for key,port in self.seriale.ports.items():
-				if port.isOpen():
-					if port.in_waiting>0:
-						# data available from the serial port
-						lastchar=port.read(1)
+	def readData(self):
+		#look for a byte from serial
+		while self.ser.in_waiting>0:
+			# data available from the serial port
+			lastchar=self.ser.read(1)
+			if lastchar==b'\xfe': #EOL
+				print("\nValue received")
+				self.useData()
+				self.buffer = []
+			else:
+				# append
+				self.buffer.append(lastchar)
 
-						if lastchar==b'\xfe': #EOL
-							print("\nValue received")
-							self.useData(self.bufferlist[key])
-							self.bufferlist[key] =[]
-						else:
-							# append
-							self.bufferlist[key].append(lastchar)
-					else:
-						print("No data received")
-				else:
-					self.seriale.ports.pop(key)
-					self.device.remove(key)
-					self.bufferlist.pop(key)
-					print(port + " è stata rimossa")
-			self.seriale.checkConnection()
-			key = [*self.seriale.ports]
-			if self.device != key:
-				count = self.diffList(key)
-				for j in count:
-					self.setupMQTT()
-					self.bufferlist[j] = []
-				time.sleep(1)
-				
-
-	def useData(self, inbuffer):
-		print(inbuffer)
+	def useData(self):
+		print(self.buffer)
 		# I have received a packet from the serial port. I can use it
 
-		if inbuffer[0] != b'\xff':
+		if self.buffer[0] != b'\xff':
 			print('Pacchetto errato')
 			return False
-		numval = int(inbuffer[1].decode()) # legge size del pacchetto
+		numval = int(self.buffer[1].decode()) # legge size del pacchetto
 		val = ''
 		for i in range (numval):
 			if numval - i == 2:
 				val = val + '.'
-			val = val + inbuffer[i+2].decode() # legge valore del pacchetto
+			val = val + self.buffer[i+2].decode() # legge valore del pacchetto
 		#print(val)
 		sensor_name = ''
 		SoN = numval + 2
-		sensorLen = len(inbuffer) - (SoN)
+		sensorLen = len(self.buffer) - (SoN)
 		for j in range (sensorLen):
-			sensor_name = sensor_name + str(inbuffer[j + SoN].decode())
-		#print(sensor_name)
-		self.clientMQTT.publish(sensor_name, val)
+			sensor_name = sensor_name + str(self.buffer[j + SoN].decode())
+		self.clientMQTT.publish(self.zona + '/' + self.id + '/' + sensor_name, val)
+		self.clientMQTT.on_message
 
-	def diffList(self, li2):
-		temp3 = []
-		for element in li2:
-			if element not in self.device:
-				temp3.append(element)
-		return temp3
 
-if __name__ == '__main__':
-	br = Bridge()
-	br.loop()
+
+
