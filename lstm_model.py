@@ -1,57 +1,11 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+"""LSTM model that does Energy production forecasting
+    Use function 'predict' to use the pre-trained network on new data.
+"""
 import torch
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
 from torch import nn
+import numpy as np
 torch.manual_seed(42)
-
-
-def init_dataframe(df):
-    # modify Time values
-    hour_col = []
-
-    for i in range(df['Time'].size):
-        if df['Time'][i].split(' ')[1] == 'pm':
-            h = df['Time'][i].split(':')[0]
-            h = int(h) + 12
-        else:
-            h = df['Time'][i].split(':')[0]
-            h = int(h)
-        hour_col = np.append(hour_col, h)
-
-    df = df.drop('Time', axis=1)
-    df.insert(1, 'Time', hour_col.astype(int))
-
-    # mantain only 3h values
-    hour_vals = [0, 3, 6, 9, 12, 15, 18, 21]
-    df = df[df['Time'].isin(hour_vals)]
-    df = df.reset_index()
-
-    # modify Date values
-    month_col = []
-    day_col = []
-    for i in range(df['Date'].size):
-        month_col = np.append(month_col, df['Date'][i].split(' ')[1])
-        day_col = np.append(day_col, df['Date'][i].split(' ')[0])
-    df = df.drop('Date', axis=1)
-    df.insert(0, 'Day', day_col.astype(int))
-    df.insert(0, 'Month', month_col.astype(int))
-
-    # normalization
-    ss = StandardScaler()
-    mms = MinMaxScaler()
-    ct = ColumnTransformer([
-        ('input_normalization', ss, [c for c in df.columns if c != 'index' and c != 'System power generated | (kW)']),
-        ('target_normalization', mms, ['System power generated | (kW)'])
-    ])
-
-    df = pd.DataFrame(ct.fit_transform(df), columns=[c for c in df.columns if c != 'index'])
-
-    return df, ss, mms
 
 
 class SequenceDataset(Dataset):
@@ -78,8 +32,8 @@ class SequenceDataset(Dataset):
         return x, self.y[i]
 
 
-class ShallowRegressionLSTM(nn.Module):
-    def __init__(self, num_features, hidden_units):
+class energyLSTM(nn.Module):
+    def __init__(self, num_features = 7, hidden_units = 3):
         super().__init__()
         self.num_features = num_features  # this is the number of features
         self.hidden_units = hidden_units
@@ -105,124 +59,53 @@ class ShallowRegressionLSTM(nn.Module):
         return out
 
 
-def train_model(data_loader, model, loss_function, optimizer, losses):
-    num_batches = len(data_loader)
-    total_loss = 0
-    model.train()
+def predict(x):
+    model = energyLSTM()
+    checkpoint = torch.load("lstm_parameters.pth")
+    model.load_state_dict(checkpoint["params"])
+    standard_scaler = checkpoint["standard_scaler"]
+    minmax_scaler = checkpoint["minmax_scaler"]
 
-    for X, y in data_loader:
-        output = model(X)
-        loss = loss_function(output, y)
+    print(standard_scaler.mean_, standard_scaler.var_)
+    #print(minmax_scaler.data_range_)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        total_loss += loss.item()
-
-    avg_loss = total_loss / num_batches
-    losses.append(avg_loss)
-    print(f"Train loss: {avg_loss}")
-
-
-def test_model(data_loader, model, loss_function, losses):
-    num_batches = len(data_loader)
-    total_loss = 0
+    # x deve essere un vettore (16, 7) con le feature di input
+    # (mese, giorno, ora, temeprature, speed, direction, pressure) x16
+    x = standard_scaler.transform(x)
+    x = torch.tensor(x).float()
+    x = torch.unsqueeze(x, dim=0)
 
     model.eval()
     with torch.no_grad():
-        for X, y in data_loader:
-            output = model(X)
-            total_loss += loss_function(output, y).item()
+        prediction = model(x)
+        #print(prediction)
+        prediction = np.array(prediction).reshape(-1, 1)
+        prediction = minmax_scaler.inverse_transform(prediction)
 
-    avg_loss = total_loss / num_batches
-    losses.append(avg_loss)
-    print(f"Test loss: {avg_loss}")
-
-
-def predict(data_loader, model):
-    output = torch.tensor([])
-    model.eval()
-    with torch.no_grad():
-        for X, _ in data_loader:
-            y_star = model(X)
-            output = torch.cat((output, y_star), 0)
-
-    return output
+    return prediction
 
 
 if __name__ == '__main__':
-    dataframe = pd.read_csv("TurbineDatabase.csv")
+    input_data = np.array([[17, 4, 6, 21.213, 10.9, 150.1, 0.998],
+                           [17, 4, 9, 21.213, 10.9, 150.1, 0.998],
+                           [17, 4, 12, 21.213, 10.9, 150.1, 0.998],
+                           [17, 4, 15, 21.213, 10.9, 150.1, 0.998],
+                           [17, 4, 18, 21.213, 10.9, 150.1, 0.998],
+                           [17, 4, 21, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 0, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 3, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 6, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 9, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 12, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 15, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 18, 21.213, 10.9, 150.1, 0.998],
+                           [17, 5, 21, 21.213, 10.9, 150.1, 0.998],
+                           [17, 6, 0, 21.213, 10.9, 150.1, 0.998],
+                           [17, 6, 3, 21.213, 10.9, 150.1, 0.998]])
 
-    num_features = 7
-    sequence_length = 8
-    batch_size = 2
-    target = 'System power generated | (kW)'
-    learning_rate = 0.001
-    num_hidden_units = 3
+    pred = predict(input_data)
+    #print(pred)
 
-    dataframe = dataframe.iloc[:-sequence_length]
-    dataframe, ss, mms = init_dataframe(dataframe)
-
-    test_head = dataframe.index[int(0.8*len(dataframe))]
-    df_train = dataframe.loc[:test_head, :]
-    df_test = dataframe.loc[test_head:, :]
-
-    train_dataset = SequenceDataset(
-        df_train,
-        target=target,
-        sequence_length=sequence_length
-    )
-
-    test_dataset = SequenceDataset(
-        df_test,
-        target=target,
-        sequence_length=sequence_length
-    )
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-    model = ShallowRegressionLSTM(num_features=num_features, hidden_units=num_hidden_units)
-    loss_function = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-    # test_losses = []
-    # print("Untrained test\n--------")
-    # test_model(test_loader, model, loss_function, test_losses)
-    # print()
-
-    train_losses = []
-    test_losses = []
-
-    for ix_epoch in range(10):
-        print(f"Epoch {ix_epoch}\n---------")
-        train_model(train_loader, model, loss_function, optimizer, train_losses)
-        test_model(test_loader, model, loss_function, test_losses)
-        print()
-
-    plt.plot(train_losses)
-    plt.plot(test_losses)
-    plt.show()
-
-    torch.save({
-        "params" : model.state_dict(),
-        "standard_scaler" : ss,
-        "minmax_scaler" : ss
-    }, "lstm_parameters.pth")
-
-    # train_eval_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-
-    # ystar_col = "Model forecast"
-    # df_train[ystar_col] = predict(train_eval_loader, model).numpy()
-    # df_test[ystar_col] = predict(test_loader, model).numpy()
-
-    # df_out = pd.concat((df_train, df_test))[[target, ystar_col]]
-
-    # for c in df_out.columns:
-    #     df_out[c] = df_out[c] * target_stdev + target_mean
-
-    # print(df_o)
 
 
 
