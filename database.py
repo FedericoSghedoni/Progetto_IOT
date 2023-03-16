@@ -15,44 +15,38 @@ def checkTableExists(dbcon, tablename):
 	return False
 
 
-def initialize_db():
+def create_tables():
 	connection = sqlite3.connect("database.db")
 
-	if not checkTableExists(connection, "arduino"):
-		cursor = connection.cursor()
-		cursor.execute("""CREATE TABLE arduino (
+	cursor = connection.cursor()
+	cursor.execute("""CREATE TABLE arduino (
 				   zone TEXT,
 				   id TEXT,
 				   date DATE,
 				   hour TIME,
-				   current FLOAT,
-				   power FLOAT,
 				   speed FLOAT,
-				   error TEXT,
-				   voltage FLOAT)""")
+				   power FLOAT,
+				   current FLOAT,
+				   error TEXT)""")
 
-	if not checkTableExists(connection, "meteo"):
-		cursor = connection.cursor()
-		cursor.execute("CREATE TABLE meteo (" +
-					   "month TEXT" +
-					   "day TEXT, " +
-					   "hour TIME, " +
-					   "temperature FLOAT, " +
-					   "wind_speed FLOAT, " +
-					   "wind_dir TEXT, " +
-					   "pressure FLOAT, " +
-					   "description TEXT, " +
-					   "power FLOAT)")
+	cursor.execute("""CREATE TABLE meteo (
+						date DATE,
+						hour TIME,
+						temperature FLOAT,
+						wind_speed FLOAT,
+						wind_dir FLOAT,
+						pressure FLOAT,
+						power FLOAT,
+						description TEXT)""")
 
 
-def insert_arduino(idpala, dic, date, hour):
+def insert_arduino(zone, idpala, date, hour, dic):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
 
 	stringa = f"""INSERT INTO arduino 
-	VALUES ('{idpala}', '{date}', '{hour}', '{dic["current"]}', '{dic["power"]}', '{dic["speed"]}', '{dic["direction"]}', '{dic["error"]}', '{dic["temperature"]}' )"""
+				VALUES ('{zone}', '{idpala}', '{date}', '{hour}', '{dic["speed"]}', '{dic["power"]}', '{dic["current"]}', '{dic["error"]}' )"""
 	cursor.execute(stringa)
-	#cursor.execute("INSERT INTO fish VALUES ('Sammy', 'shark', 1)")
 
 	# rendo permanenti gli INSERT
 	connection.commit()
@@ -62,7 +56,7 @@ def insert_meteo(x):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
 
-	stringa = f"INSERT INTO meteo VALUES ('{x[0]}', '{x[1]}', '{x[2]}', '{x[3]}', '{x[4]}', '{x[5]}', '{x[6]}', '{x[7]}', '{x[8]}')"
+	stringa = f"INSERT INTO meteo VALUES ('{x[0]}', '{x[1]}', '{x[2]}', '{x[3]}', '{x[4]}', '{x[5]}', '{x[6]}', '{x[7]}')"
 	cursor.execute(stringa)
 
 	# rendo permanenti gli INSERT
@@ -79,18 +73,32 @@ def get_turbin_info(idpala):
 	return result.fetchall()
 
 
+def get_recent_meteo(n=15):
+	connection = sqlite3.connect("database.db")
+	cursor = connection.cursor()
+	result = cursor.execute(f"SELECT * FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}")
+	return result.fetchall()
+
+
 if __name__ == '__main__':
-	#initialize_db()
+	# Run create_tables only if the db doesn't already exist
+	#create_tables()
+
 	dic = {
 		"current": 200,
 		"power": 200,
-		"temperature": 23.6,
 		"error": "no error",
-		"speed": 100,
-		"direction": "nord"
+		"speed": 100
 	}
-	insert_arduino("001", dic, "2023-03-01", "17:50:00")
+	# Insert the dic values inside arduino table
+	#insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
+
+	# Return info for the specified turbine
 	#get_turbin_info("001")
+
+	# Insert the m values inside meteo table
+	m = ["2023-03-02", "17:50:00", 18.9, 100, 21.3, 0.999, 400, "Rain"]
+	insert_meteo(m)
 
 	#rows = cursor.execute("SELECT name, species, tank_number FROM fish").fetchall()
 	#print(rows)
