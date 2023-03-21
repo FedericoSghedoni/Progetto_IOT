@@ -1,20 +1,14 @@
 from threading import *
-import time
 import schedule
 import requests
 from paho.mqtt import client as mqtt_client
 
 api_key = "e583a33a1ffef78a771ec70327961706"
-#url = "https://api.openweathermap.org/data/2.5/weather?lat=44.5&lon=10.9&appid=" + api_key
 url = "https://api.openweathermap.org/data/2.5/weather?"
 
 broker = 'localhost'
 #broker = "localhost"
 port = 1883
-name = "wind_thread"
-zone_dic = {
-	"01": (44.5, 10.9)
-}
 
 
 def check_connection(client, userdata, flags, rc):
@@ -66,5 +60,8 @@ class OrientationThread(Thread):
 
 
 if __name__ == "__main__":
+	zone_dic = {
+		"01": (44.5, 10.9)
+	}
 	wind_t = OrientationThread(zone_dic)
 	wind_t.start()
