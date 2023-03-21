@@ -66,7 +66,7 @@ def predict(x):
     standard_scaler = checkpoint["standard_scaler"]
     minmax_scaler = checkpoint["minmax_scaler"]
 
-    print(standard_scaler.mean_, standard_scaler.var_)
+    #print(standard_scaler.mean_, standard_scaler.var_)
     #print(minmax_scaler.data_range_)
 
     # x deve essere un vettore (16, 7) con le feature di input

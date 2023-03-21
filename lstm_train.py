@@ -56,6 +56,24 @@ def init_dataframe(df):
     return df, ct.transformers_[0][1], ct.transformers_[1][1]
 
 
+def eval_acc(data_loader, model, mms):
+    num_batches = len(data_loader)
+    absolute_error = 0
+    error = nn.L1Loss()
+    model.eval()
+    mean_val = 0
+    with torch.no_grad():
+        for X, y in data_loader:
+            output = model(X).reshape(-1, 1)
+            output = torch.from_numpy(mms.inverse_transform(output))
+            y = torch.from_numpy(mms.inverse_transform(y.reshape(-1, 1)))
+            mean_val += torch.mean(y)
+            absolute_error += error(output, y)
+        absolute_error /= num_batches
+        mean_val /= num_batches
+    return absolute_error / mean_val
+
+
 def train_model(data_loader, model, loss_function, optimizer, losses):
     num_batches = len(data_loader)
     total_loss = 0
@@ -105,6 +123,7 @@ if __name__ == '__main__':
     dataframe = dataframe.iloc[:-sequence_length]
 
     # Modify the TurbineDataset.csv
+    print("init dataset")
     dataframe, ss, mms = init_dataframe(dataframe)
 
     test_head = dataframe.index[int(0.8*len(dataframe))]
@@ -131,16 +150,26 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     train_losses = []
-    test_losses = []
+    #test_losses = []
+    train_mae = []
+    test_mae = []
 
-    for ix_epoch in range(10):
+    for ix_epoch in range(15):
         print(f"Epoch {ix_epoch}\n---------")
         train_model(train_loader, model, loss_function, optimizer, train_losses)
-        test_model(test_loader, model, loss_function, test_losses)
+        mae = eval_acc(train_loader, model, mms)
+        print(f"Train MAE +- {mae}")
+        train_mae.append(mae)
+        mae = eval_acc(test_loader, model, mms)
+        print(f"Test MAE +- {mae}")
+        test_mae.append(mae)
+        #test_model(test_loader, model, loss_function, test_losses)
         print()
 
-    plt.plot(train_losses)
-    plt.plot(test_losses)
+    #plt.plot(train_losses)
+    #plt.plot(test_losses)
+    plt.plot(train_mae)
+    plt.plot(test_mae)
     plt.show()
 
     torch.save({
