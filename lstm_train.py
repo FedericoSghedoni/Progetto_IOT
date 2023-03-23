@@ -39,8 +39,8 @@ def init_dataframe(dframe):
     #        new_val = (df.iloc[index]['System power generated | (kW)'] + df.iloc[index - 1]['System power generated | (kW)'] + df.iloc[index - 2]['System power generated | (kW)']) / 3
     #        df.iloc[index, -1] = new_val
 
-    df = df[df['Time'].isin(hour_vals)]
-    df = df.reset_index()
+    #df = df[df['Time'].isin(hour_vals)]
+    #df = df.reset_index()
 
     # modify Date values
     month_col = []
@@ -121,12 +121,12 @@ if __name__ == '__main__':
     dataframe = pd.read_csv("TurbineDataset.csv")
 
     num_features = 7
-    sequence_length = 16
-    batch_size = 2
+    sequence_length = 48
+    batch_size = 10
     target = 'System power generated | (kW)'
     learning_rate = 0.0005
     num_hidden_units = 3
-    epoches = 20
+    epoches = 50
 
     dataframe = dataframe.iloc[:-sequence_length]
 
