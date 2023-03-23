@@ -1,20 +1,6 @@
 import sqlite3
 
 
-def checkTableExists(dbcon, tablename):
-	dbcur = dbcon.cursor()
-	dbcur.execute("""
-        SELECT COUNT(*)
-        FROM information_schema.tables
-        WHERE table_name = '{0}'
-        """.format(tablename.replace('\'', '\'\'')))
-	if dbcur.fetchone()[0] == 1:
-		dbcur.close()
-		return True
-	dbcur.close()
-	return False
-
-
 def create_tables():
 	connection = sqlite3.connect("database.db")
 
@@ -30,14 +16,15 @@ def create_tables():
 				   error TEXT)""")
 
 	cursor.execute("""CREATE TABLE meteo (
-						date DATE,
-						hour TIME,
+						date DATE NOT NULL,
+						hour TIME NOT NULL,
 						temperature FLOAT,
-						wind_speed FLOAT,
-						wind_dir FLOAT,
+						speed FLOAT,
+						direction FLOAT,
 						pressure FLOAT,
 						power FLOAT,
-						description TEXT)""")
+						description TEXT,
+						PRIMARY KEY (date, hour))""")
 
 
 def insert_arduino(zone, idpala, date, hour, dic):
@@ -56,7 +43,7 @@ def insert_meteo(x):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
 
-	stringa = f"INSERT INTO meteo VALUES ('{x[0]}', '{x[1]}', '{x[2]}', '{x[3]}', '{x[4]}', '{x[5]}', '{x[6]}', '{x[7]}')"
+	stringa = f"REPLACE INTO meteo VALUES ('{x[0]}', '{x[1]}', {x[2]}, '{x[3]}', '{x[4]}', '{x[5]}', '{x[6]}', '{x[7]}')"
 	cursor.execute(stringa)
 
 	# rendo permanenti gli INSERT
@@ -73,16 +60,17 @@ def get_turbin_info(idpala):
 	return result.fetchall()
 
 
-def get_recent_meteo(n=15):
+def get_recent_meteo(n=47):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
-	result = cursor.execute(f"SELECT * FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}")
+	result = cursor.execute(f"""SELECT date, hour, temperature, speed, direction, pressure
+	FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}""")
 	return result.fetchall()
 
 
 if __name__ == '__main__':
 	# Run create_tables only if the db doesn't already exist
-	#create_tables()
+	create_tables()
 
 	dic = {
 		"current": 200,
@@ -96,9 +84,9 @@ if __name__ == '__main__':
 	# Return info for the specified turbine
 	#get_turbin_info("001")
 
+	m1 = ["2023-03-17", "12:00:00", 11.1, 3.05, 74, 1.0086, None, "overcast clouds"]
 	# Insert the m values inside meteo table
-	m = ["2023-03-02", "17:50:00", 18.9, 100, 21.3, 0.999, 400, "Rain"]
-	insert_meteo(m)
+	#insert_meteo(m1)
 
 	#rows = cursor.execute("SELECT name, species, tank_number FROM fish").fetchall()
 	#print(rows)
