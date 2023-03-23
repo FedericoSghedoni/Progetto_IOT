@@ -3,9 +3,7 @@ import schedule
 import requests
 from paho.mqtt import client as mqtt_client
 
-api_key = "e583a33a1ffef78a771ec70327961706"
-url = "https://api.openweathermap.org/data/2.5/weather?"
-url1 = "http://api.weatherapi.com/v1/current.json?key=00590921f850414bb73194114232303&q="
+url = "http://api.weatherapi.com/v1/current.json?key=00590921f850414bb73194114232303&q="
 
 broker = 'localhost'
 port = 1883
@@ -18,9 +16,9 @@ def check_connection(client, userdata, flags, rc):
 		print("MQTT Connection Error", rc)
 
 
-class OrientationThread(Thread):
+class DirectionThread(Thread):
 	def __init__(self, zones):
-		super(OrientationThread, self).__init__()
+		super(DirectionThread, self).__init__()
 		self.zones = zones
 		self.direction = {}
 		self.client = mqtt_client.Client("wind_thread")
@@ -30,7 +28,7 @@ class OrientationThread(Thread):
 
 		# initialize direction values
 		for zone_name in self.zones:
-			complete_url = url1 + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
+			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 			self.direction[zone_name] = direction
@@ -45,7 +43,7 @@ class OrientationThread(Thread):
 
 	def update(self):
 		for zone_name in self.zones:
-			complete_url = url1 + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
+			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 
@@ -61,5 +59,5 @@ if __name__ == "__main__":
 	zone_dic = {
 		"01": (44.5, 10.9)
 	}
-	wind_t = OrientationThread(zone_dic)
+	wind_t = DirectionThread(zone_dic)
 	wind_t.start()
