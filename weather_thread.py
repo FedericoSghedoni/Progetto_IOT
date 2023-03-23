@@ -1,33 +1,71 @@
+"""
+Weather Thread download meteo informations every 3 hour, uses these informations
+to predict the produced enery and saves the values in the database.
+"""
 from threading import *
 import time
 import schedule
 import requests
 from lstm_model import predict
 from database import insert_meteo
+from database import get_recent_meteo
+import numpy as np
 
-api_key = "e583a33a1ffef78a771ec70327961706"
-url = "https://api.openweathermap.org/data/2.5/forecast?lat=10.9&lon=44.5&appid=" + api_key
+url = "http://api.weatherapi.com/v1/forecast.json?key=00590921f850414bb73194114232303&q=44.64,10.92&days=2&aqi=no&alerts=no"
+
+
+def download_all():
+	meteo_json = requests.get(url).json()
+	for day_meteo in meteo_json["forecast"]["forecastday"]:
+		for hour_meteo in day_meteo["hour"]:
+			dt = hour_meteo["time"]
+			temperature = float(hour_meteo["temp_c"])
+			pressure = float(hour_meteo ["pressure_mb"]) * 0.0009869  # convert from millibar to atm
+			direction = float(hour_meteo["wind_degree"])
+			speed = float(hour_meteo["wind_mph"]) * 0.44704  # convert mph to m/s
+			description = hour_meteo["condition"]["text"]
+
+			insert_meteo([dt.split(' ')[0], dt.split(' ')[1], temperature, speed, direction, pressure, None, description])
 
 
 def download():
-	#print("func")
-	response = requests.get(url)
-	data = response.json()
-	x = data["list"]
-	temperature = x[7]["main"]["temp"]
-	pressure = x[7]["main"]["pressure"]
-	speed = x[7]["wind"]["speed"]
-	direction = x[7]["wind"]["deg"]
-	month = int(x[7]["dt_txt"].split('-')[1])
-	day = int(x[7]["dt_txt"].split('-')[2].split(' ')[0])
-	h = int(x[7]["dt_txt"].split(' ')[1].split(':')[0])
-	description = x[7]["weather"][0]["description"]
+	print("Download")
+	meteo_json = requests.get(url).json()
+	current_hour = int(meteo_json["location"]["localtime"].split(' ')[1].split(':')[0])
 
-	x = [month, day, h, temperature, speed, direction, pressure]
-	power = predict(x)
-	x.append(description)
-	x.append(power)
-	insert_meteo(x)
+	future_meteo = meteo_json["forecast"]["forecastday"][1]["hour"][current_hour]
+	temperature = float(future_meteo["temp_c"])
+	pressure = float(future_meteo ["pressure_mb"]) * 0.0009869  # convert to atm
+	speed = float(future_meteo["wind_mph"]) * 0.44704  # m/s
+	direction = float(future_meteo["wind_degree"])  # deg
+	dt = future_meteo["time"]
+	month = int(dt.split('-')[1])
+	day = int(dt.split('-')[2].split(' ')[0])
+	description = future_meteo["condition"]["text"]
+
+	db_in = [dt.split(' ')[0], dt.split(' ')[1], temperature, speed, direction, pressure]
+
+	# collect the inputs for lstm model
+	lstm_in = np.array([month, day, current_hour, temperature, speed, direction, pressure])
+	met = get_recent_meteo()
+	for i in met:
+		i = list(i)
+		d = i.pop(0)
+		h = i.pop(0)
+		i.insert(0, int(h.split(':')[0]))  # ora
+		i.insert(0, int(d.split('-')[2]))  # giorno
+		i.insert(0, int(d.split('-')[1]))  # mese
+		lstm_in = np.append(lstm_in, i)
+
+	# predict power value
+	lstm_in = lstm_in.reshape(-1, 7)
+	power = predict(lstm_in)
+
+	# complete database values and insert them
+	db_in.append(description)
+	db_in.append(power)
+	insert_meteo(db_in)
+	print("finish download")
 
 
 class WeatherThread(Thread):
@@ -35,17 +73,17 @@ class WeatherThread(Thread):
 		super(WeatherThread, self).__init__()
 		self.download = download
 
-		times = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"]
-		for t in times:
-			schedule.every().day.at(t).do(self.download)
+		schedule.every().hour.at(":00").do(self.download)
 
 	def run(self):
 		while True:
 			schedule.run_pending()
-			time.sleep(60)
-
+			time.sleep(1)
 
 
 if __name__ == "__main__":
+	#download_all()
+	#download()
 	weather_t = WeatherThread()
 	weather_t.start()
+	weather_t.join()
