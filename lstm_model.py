@@ -69,7 +69,7 @@ def predict(x):
     #print(standard_scaler.mean_, standard_scaler.var_)
     #print(minmax_scaler.data_range_)
 
-    # x deve essere un vettore (16, 7) con le feature di input
+    # x deve essere un ndarray (16, 7) con le feature di input
     # (mese, giorno, ora, temeprature, speed, direction, pressure) x16
     x = standard_scaler.transform(x)
     x = torch.tensor(x).float()

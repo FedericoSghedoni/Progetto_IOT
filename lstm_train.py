@@ -15,7 +15,8 @@ from torch import nn
 torch.manual_seed(42)
 
 
-def init_dataframe(df):
+def init_dataframe(dframe):
+    df = dframe.copy()
     # modify Time values
     hour_col = []
     for i in range(df['Time'].size):
@@ -32,6 +33,12 @@ def init_dataframe(df):
 
     # mantain only 3h values
     hour_vals = [0, 3, 6, 9, 12, 15, 18, 21]
+
+    #for index in range(len(df)):
+    #    if index != 0 and (index % 3) == 0:
+    #        new_val = (df.iloc[index]['System power generated | (kW)'] + df.iloc[index - 1]['System power generated | (kW)'] + df.iloc[index - 2]['System power generated | (kW)']) / 3
+    #        df.iloc[index, -1] = new_val
+
     df = df[df['Time'].isin(hour_vals)]
     df = df.reset_index()
 
@@ -114,16 +121,17 @@ if __name__ == '__main__':
     dataframe = pd.read_csv("TurbineDataset.csv")
 
     num_features = 7
-    sequence_length = 8
+    sequence_length = 16
     batch_size = 2
     target = 'System power generated | (kW)'
-    learning_rate = 0.001
+    learning_rate = 0.0005
     num_hidden_units = 3
+    epoches = 20
 
     dataframe = dataframe.iloc[:-sequence_length]
 
     # Modify the TurbineDataset.csv
-    print("init dataset")
+    #print("init dataset")
     dataframe, ss, mms = init_dataframe(dataframe)
 
     test_head = dataframe.index[int(0.8*len(dataframe))]
@@ -154,7 +162,7 @@ if __name__ == '__main__':
     train_mae = []
     test_mae = []
 
-    for ix_epoch in range(15):
+    for ix_epoch in range(epoches):
         print(f"Epoch {ix_epoch}\n---------")
         train_model(train_loader, model, loss_function, optimizer, train_losses)
         mae = eval_acc(train_loader, model, mms)
