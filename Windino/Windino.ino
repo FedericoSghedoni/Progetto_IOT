@@ -33,8 +33,9 @@ void send_packs(){
 }
 
 void online_mean(float old[], float value){
+  if(value < 0)
+    value = 0;
   float delta = value - old[0];
-  // || ( old[1] / (n-1) < pow(delta,2) && old[1] != 0)
   if(delta < 0 )
     delta *= (1 / pow(n, 0.25));  
   old[0] += delta / n;
