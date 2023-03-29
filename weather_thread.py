@@ -20,12 +20,12 @@ def download_all():
 		for hour_meteo in day_meteo["hour"]:
 			dt = hour_meteo["time"]
 			temperature = float(hour_meteo["temp_c"])
-			pressure = float(hour_meteo ["pressure_mb"]) * 0.0009869  # convert from millibar to atm
+			pressure = float(hour_meteo["pressure_mb"]) * 0.0009869  # convert from millibar to atm
 			direction = float(hour_meteo["wind_degree"])
 			speed = float(hour_meteo["wind_mph"]) * 0.44704  # convert mph to m/s
 			description = hour_meteo["condition"]["text"]
 
-			insert_meteo([dt.split(' ')[0], dt.split(' ')[1], temperature, speed, direction, pressure, None, description])
+			insert_meteo([dt.split(' ')[0], dt.split(' ')[1] + ":00", temperature, speed, direction, pressure, 0, description])
 
 
 def download():
@@ -43,7 +43,7 @@ def download():
 	day = int(dt.split('-')[2].split(' ')[0])
 	description = future_meteo["condition"]["text"]
 
-	db_in = [dt.split(' ')[0], dt.split(' ')[1], temperature, speed, direction, pressure]
+	db_in = [dt.split(' ')[0], dt.split(' ')[1] + ":00", temperature, speed, direction, pressure]
 
 	# collect the inputs for lstm model
 	lstm_in = np.array([month, day, current_hour, temperature, speed, direction, pressure])
@@ -82,8 +82,8 @@ class WeatherThread(Thread):
 
 
 if __name__ == "__main__":
-	#download_all()
+	download_all()
 	#download()
-	weather_t = WeatherThread()
-	weather_t.start()
-	weather_t.join()
+	#weather_t = WeatherThread()
+	#weather_t.start()
+	#weather_t.join()
