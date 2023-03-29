@@ -25,10 +25,13 @@ def on_connect(client, userdata, flags, rc):
 
 
 def update():
-	update_power(power_register / (60 / 10), date.today(), datetime.now().strftime("%H:%M:%S"))
+	global power_register
+	update_power(power_register / (60 / 10), date.today(), str(datetime.now().hour) + ":00:00")
+	power_register = 0
 
 
 def on_message(client, userdata, msg):
+	global power_register, turbine_register
 	# Dice cosa fare quando arriva un nuovo messaggio
 	print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 	topic = msg.topic.split("/")
@@ -76,5 +79,6 @@ if __name__ == "__main__":
 		"01": ["001", "002"],
 		"02": ["003"]
 	}
-	arduino_t = ArduinoThread(zone_turbine)
-	arduino_t.start()
+	#arduino_t = ArduinoThread(zone_turbine)
+	#arduino_t.start()
+	update()
