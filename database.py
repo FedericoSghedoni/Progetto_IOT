@@ -46,16 +46,6 @@ def insert_meteo(x):
 		cursor.execute(stringa)
 
 
-def get_turbin_info(idpala):
-	connection = sqlite3.connect("database.db")
-	cursor = connection.cursor()
-	command = f"""SELECT * FROM arduino
-	WHERE id='{idpala}'
-	"""
-	result = cursor.execute(command)
-	return result.fetchall()
-
-
 def get_recent_meteo(n=47):
 	connection = sqlite3.connect("database.db")
 	cursor = connection.cursor()
