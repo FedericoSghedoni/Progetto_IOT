@@ -1,0 +1,535 @@
+  {% extends "layouts/base.html" %} {% block title %} Windino {% endblock %}
+
+  {% block content %}
+
+  <div class="content">
+
+    <!-- Prima RIGA CON LA MAPPA, BOX E TABELLA -->
+  <div class="row">
+      <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                      <div class="col-sm-6 text-left">
+                        <h2 class="card-title">Mappa delle Pale e dati recenti</h2>
+                      </div>
+                    </div>
+                
+                    <div class="form-group">
+                          <label for="zone-select">Seleziona zona:</label>
+                          <select class="form-control" id="zone-select">
+                            <option value="zone1">Zona 1</option>
+                            <option value="zone2">Zona 2</option>
+                            <option value="zone3">Zona 3</option>
+                          </select>
+                      </div>
+                    
+
+                    <select id="location-select">
+                        <option value="turbine1">Pala 1</option>
+                        <option value="turbine2">Pala 2</option>
+                        <option value="turbine3">Pala 3</option>
+                      </select>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-6 col-md-12">
+                        <div id="map-container">
+                          <img id="map-image" src="/static/assets/img/pale/zone1turbine1.png">
+                      </div>
+                      </div>
+                      <div class="col-lg-6 col-md-12">
+                        <div class="table">
+                          <table class="table tablesorter" id="zona1tab" style="display: block;">
+                            <thead class="text-primary">
+                              <tr>
+                                <th class="text-center">zone</th>
+                                <th class="text-center">id_pala</th>
+                                <th class="text-center">date</th>
+                                <th class="text-center">hour</th>
+                                <th class="text-center">speed</th>
+                                <th class="text-center">power</th>
+                                <th class="text-center">current</th>
+                                <th class="text-center">error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              {% for pala in arduino_recent_data %}
+                              {% if pala.zone == "zona 1" %}
+                                  <tr>
+                                      <td class="text-center">{{pala.zone}}</td>
+                                      <td class="text-center">{{ pala.id }}</td>
+                                      <td class="text-center">{{ pala.date }}</td>
+                                      <td class="text-center">{{ pala.hour }}</td>
+                                      <td class="text-center">{{ pala.speed }}</td>
+                                      <td class="text-center">{{ pala.power }}</td>
+                                      <td class="text-center">{{ pala.current }}</td>
+                                      <td class="text-center">{{ pala.error }}</td>
+                                  </tr>
+                              {%endif%}
+                              {% endfor %}
+                            </tbody>
+                          </table>
+
+                          <table class="table tablesorter" id="zona2tab" style="display: none;">
+                            <thead class="text-primary">
+                              <tr>
+                                <th class="text-center">zone</th>
+                                <th class="text-center">id_pala</th>
+                                <th class="text-center">date</th>
+                                <th class="text-center">hour</th>
+                                <th class="text-center">speed</th>
+                                <th class="text-center">power</th>
+                                <th class="text-center">current</th>
+                                <th class="text-center">error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              {% for pala in arduino_recent_data %}
+                              {% if pala.zone == "zona 2" %}
+                                  <tr>
+                                      <td class="text-center">{{pala.zone}}</td>
+                                      <td class="text-center">{{ pala.id }}</td>
+                                      <td class="text-center">{{ pala.date }}</td>
+                                      <td class="text-center">{{ pala.hour }}</td>
+                                      <td class="text-center">{{ pala.speed }}</td>
+                                      <td class="text-center">{{ pala.power }}</td>
+                                      <td class="text-center">{{ pala.current }}</td>
+                                      <td class="text-center">{{ pala.error }}</td>
+                                  </tr>
+                              {%endif%}
+                              {% endfor %}
+                            </tbody>
+                          </table>
+
+                          <table class="table tablesorter" id="zona3tab" style="display: none;">
+                            <thead class="text-primary">
+                              <tr>
+                                <th class="text-center">zone</th>
+                                <th class="text-center">id_pala</th>
+                                <th class="text-center">date</th>
+                                <th class="text-center">hour</th>
+                                <th class="text-center">speed</th>
+                                <th class="text-center">power</th>
+                                <th class="text-center">current</th>
+                                <th class="text-center">error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              {% for pala in arduino_recent_data %}
+                              {% if pala.zone == "zona 3" %}
+                                  <tr>
+                                      <td class="text-center">{{pala.zone}}</td>
+                                      <td class="text-center">{{ pala.id }}</td>
+                                      <td class="text-center">{{ pala.date }}</td>
+                                      <td class="text-center">{{ pala.hour }}</td>
+                                      <td class="text-center">{{ pala.speed }}</td>
+                                      <td class="text-center">{{ pala.power }}</td>
+                                      <td class="text-center">{{ pala.current }}</td>
+                                      <td class="text-center">{{ pala.error }}</td>
+                                  </tr>
+                              {%endif%}
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                          
+                            <table id="location1-table" style="display: block;">
+                              <!-- tabella per location1 -->
+                            </table>
+                            
+                            <table id="location2-table" style="display: none;">
+                              <!-- tabella per location2 -->
+                            </table>
+                            
+                            <table id="location3-table" style="display: none;">
+                              <!-- tabella per location3 -->
+                            </table>
+                            
+                            <script>
+                              // Gestisci il cambiamento della selezione nella combobox
+                              var zoneSelect=document.getElementById('zone-select');
+                              var locationSelect = document.getElementById('location-select');
+                              zoneSelect.addEventListener('change', function() {
+                                var locationImage = null;
+                                if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if(zoneSelect.value==='zone2' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone2' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone2' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                }
+                                
+                                // Cambia l'immagine della mappa per la nuova posizione
+                                document.getElementById('map-image').src = locationImage;
+                              });
+                              locationSelect.addEventListener('change',function(){
+                                var locationImage = null;
+                                if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone1' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone1turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'block';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if(zoneSelect.value==='zone2' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone2' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone2' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone2turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'block';
+                                  document.getElementById('zona3tab').style.display = 'none';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine1') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine1.png';
+                                  // visualizza la tabella per location1
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine2') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine2.png';
+                                  // visualizza la tabella per location2
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                } else if (zoneSelect.value==='zone3' && locationSelect.value === 'turbine3') {
+                                  locationImage = '/static/assets/img/pale/zone3turbine3.png';
+                                  // visualizza la tabella per location3
+                                  document.getElementById('zona1tab').style.display = 'none';
+                                  document.getElementById('zona2tab').style.display = 'none';
+                                  document.getElementById('zona3tab').style.display = 'block';
+                                }
+                                
+                                // Cambia l'immagine della mappa per la nuova posizione
+                                document.getElementById('map-image').src = locationImage;
+                              });
+                            </script>
+                      
+                    </div>  
+            </div>
+
+  </div>
+    <!-- Seconda RIGA CON IL GRAFICO -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card card-chart">
+          <div class="card-header">
+            <div class="row">
+              <div class="col-sm-6 text-left">
+                <h5 class="card-category">Grafico</h5>
+                <h2 class="card-title">System Power</h2>
+              </div>
+              <!-- parte con i bottoni per selezionare i vari grafici -->
+              <div class="col-sm-6">
+                <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                  <label class="btn btn-sm btn-primary btn-simple active" id="0">
+                    <input type="radio" name="options" checked />
+                    <span
+                      class="d-none d-sm-block d-md-block d-lg-block d-xl-block">IERI</span
+                    >
+                    <span class="d-block d-sm-none">
+                      <i class="tim-icons icon-single-02"></i>
+                    </span>
+                  </label>
+                  <label class="btn btn-sm btn-primary btn-simple" id="1">
+                    <input type="radio" class="d-none d-sm-none" name="options" />
+                    <span
+                      class="d-none d-sm-block d-md-block d-lg-block d-xl-block"
+                      >OGGI</span
+                    >
+                    <span class="d-block d-sm-none">
+                      <i class="tim-icons icon-gift-2"></i>
+                    </span>
+                  </label>
+                  <label class="btn btn-sm btn-primary btn-simple" id="2">
+                    <input type="radio" class="d-none" name="options" />
+                    <span
+                      class="d-none d-sm-block d-md-block d-lg-block d-xl-block">DOMANI</span>
+                    <span class="d-block d-sm-none">
+                      <i class="tim-icons icon-tap-02"></i>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-area">
+              <canvas id="chartBig1"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terza RIGA CON  LA TABELLA -->
+    <div class="row">
+      
+              <div class="card">
+                
+                  <div class="card-header">
+                      <div class="row">
+
+                          <div class="col-sm-6 text-left">
+                            <h5 class="card-category"></h5>
+                            <h2 class="card-title">Dati raccolti</h2>
+                          </div>
+
+                        
+                          <div class="col-sm-6">
+                              <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                  <label class="btn btn-sm btn-primary btn-simple active" id="arduino-btn">
+                                    <input type="radio" name="options" checked />
+                                      <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">ARDUINO</span>
+                                        <span class="d-block d-sm-none"><i class="tim-icons icon-single-02"></i>
+                                        </span>
+                                    </label>
+
+                                    <label class="btn btn-sm btn-primary btn-simple" id="meteo-btn">
+                                      <input type="radio" class="d-none d-sm-none" name="options" />
+                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">METEO</span>
+                                          <span class="d-block d-sm-none">
+                                            <i class="tim-icons icon-gift-2"></i>
+                                          </span>
+                                    </label>
+
+                                  <label class="btn btn-sm btn-primary btn-simple" id="power-btn">
+                                    <input type="radio" class="d-none d-sm-none" name="options" />
+                                      <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SYSTEM POWER GENERATED</span>
+                                        <span class="d-block d-sm-none">
+                                          <i class="tim-icons icon-gift-2"></i>
+                                        </span>
+                                  </label>
+
+                                
+
+                                </div>
+                            
+                            </div>
+                      </div>
+                  </div>
+                    
+                        <div class="card-body">
+                          <div class="table">
+                              <table class="table-responsive mx-auto" id="arduino-content" style="display: block;">
+                                <thead class="text-primary">
+                                  <tr>
+                                      <th class="text-center">zone</th>
+                                      <th class="text-center">id_pala</th>
+                                      <th class="text-center">date</th>
+                                      <th class="text-center">hour</th>
+                                      <th class="text-center">speed</th>
+                                      <th class="text-center">power</th>
+                                      <th class="text-center">current</th>
+                                      <th class="text-center">error</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {% for pala in arduino_recent_data %}
+                                
+                                      <tr>
+                                          <td class="text-center">{{pala.zone}}</td>
+                                          <td class="text-center">{{ pala.id }}</td>
+                                          <td class="text-center">{{ pala.date }}</td>
+                                          <td class="text-center">{{ pala.hour }}</td>
+                                          <td class="text-center">{{ pala.speed }}</td>
+                                          <td class="text-center">{{ pala.power }}</td>
+                                          <td class="text-center">{{ pala.current }}</td>
+                                          <td class="text-center">{{ pala.error }}</td>
+                                      </tr>
+                                
+                              {% endfor %}
+                              
+                                </tbody>
+                              </table>
+                            </div>
+                          
+                            <div class="table">
+                              <table class="table-responsive mx-auto" id="power-content" style="display: none;">
+                                <!-- tabella per location2 -->
+                                <thead class="text-primary">
+                                  <tr>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Time</th>
+                                    <th class="text-center">Air temperature (°C)</th>
+                                    <th class="text-center">Wind speed (m/s)</th>
+                                    <th class="text-center">Wind direction (deg)</th>
+                                    <th class="text-center">Pressure (atm)</th>
+                                    <th class="text-center">System Power Generated (kW)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {% for power in power[-12:] %}
+                                  <tr>
+                                    
+                                    <td class="text-center">{{ power[0] }}</td>
+                                    <td class="text-center">{{ power[1] }}</td>
+                                    <td class="text-center">{{ power[2]}}</td>
+                                    <td class="text-center">{{ power[3] }}</td>
+                                    <td class="text-center">{{ power[4] }}</td>
+                                    <td class="text-center">{{ power[5] }}</td>
+                                    <td class="text-center">{{ power[6] }}</td>
+                                  </tr>
+                                  {% endfor %}
+                                </tbody>
+                              </table>
+                            </div>
+
+
+                            <div class="table">
+                              <table class="table-responsive mx-auto" id="meteo-content" style="display: none;">
+                                <!-- tabella per location3 -->
+                                <thead class="text-primary">
+                                  <tr>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Hour</th>
+                                    <th class="text-center">Temperature</th>
+                                    <th class="text-center">Speed</th>
+                                    <th class="text-center">Direction</th>
+                                    <th class="text-center">Pressure</th>
+                                    <th class="text-center">Power</th>
+                                    <th class="text-center">Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                  {% for meteo in meteo[-12:] %}
+                                
+                                      <tr>
+                                          <td class="text-center">{{ meteo[0] }}</td>
+                                          <td class="text-center">{{ meteo[1] }}</td>
+                                          <td class="text-center">{{ meteo[2] }}</td>
+                                          <td class="text-center">{{ meteo[3] }}</td>
+                                          <td class="text-center">{{ meteo[4] }}</td>
+                                          <td class="text-center">{{ meteo[5] }}</td>
+                                          <td class="text-center">{{ meteo[6] }}</td>
+                                          <td class="text-center">{{ meteo[7] }}</td>
+                                      </tr>
+                            
+                              {% endfor %}
+                                </tbody>
+                              </table>
+                            </div>
+                        </div>
+            
+              </div>
+
+                <script>
+                  // Gestisci i clic sui bottoni
+                      var arduinoBtn = document.getElementById('arduino-btn');
+                      var powerBtn = document.getElementById('power-btn');
+                      var meteoBtn = document.getElementById('meteo-btn');
+            
+                      arduinoBtn.addEventListener('click', function() {
+                      // visualizza il contenuto per ARDUINO
+                      document.getElementById('arduino-content').style.display = 'block';
+                      document.getElementById('power-content').style.display = 'none';
+                      document.getElementById('meteo-content').style.display = 'none';
+                      });
+            
+                      powerBtn.addEventListener('click', function() {
+                      // visualizza il contenuto per METEO
+                      document.getElementById('arduino-content').style.display = 'none';
+                      document.getElementById('power-content').style.display = 'block';
+                      document.getElementById('meteo-content').style.display = 'none';
+                      });
+            
+                      meteoBtn.addEventListener('click', function() {
+                      // visualizza il contenuto per TABELLA 3
+                      document.getElementById('arduino-content').style.display = 'none';
+                      document.getElementById('power-content').style.display = 'none';
+                      document.getElementById('meteo-content').style.display = 'block';
+                      });
+                  </script>
+            
+        </div>
+
+  </div>
+
+
+
+
+  </div>
+
+
+    {% endblock content %} {% block javascripts %}
+    <!-- Specific Page JS goes HERE  -->
+    <script>
+      $(document).ready(function () {
+        // Javascript method's body can be found in assets/js/demos.js
+        demo.initDashboardPageCharts();
+      });
+    </script>
+
+    {% endblock javascripts %}
+  </div>

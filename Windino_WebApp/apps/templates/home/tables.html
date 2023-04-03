@@ -1,0 +1,144 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="content">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card " >
+          <div class="card-header">
+            <h4 class="card-title"> Dati raccolti da Arduino</h4>
+          </div>
+          <div class="card-body">
+            <table class="table tablesorter" id="">
+              <thead class="text-primary">
+                <tr>
+                  <th class="text-center">zone</th>
+                  <th class="text-center">id_pala</th>
+                  <th class="text-center">date</th>
+                  <th class="text-center">hour</th>
+                  <th class="text-center">speed</th>
+                  <th class="text-center">power</th>
+                  <th class="text-center">current</th>
+                  <th class="text-center">error</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for pala in arduino %}
+              
+                    <tr>
+                        <td class="text-center">{{pala.zone}}</td>
+                        <td class="text-center">{{ pala.id }}</td>
+                        <td class="text-center">{{ pala.date }}</td>
+                        <td class="text-center">{{ pala.hour }}</td>
+                        <td class="text-center">{{ pala.speed }}</td>
+                        <td class="text-center">{{ pala.power }}</td>
+                        <td class="text-center">{{ pala.current }}</td>
+                        <td class="text-center">{{ pala.error }}</td>
+                    </tr>
+          
+            {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-12">
+        <div class="card  card-plain">
+          <div class="card-header">
+            <h4 class="card-title">System Power Generated</h4>
+            <p class="category">Dati storici riguardanti la potenza generata dal sistema</p>
+            <p>Select a date:</p>
+            <input type="date" id="dateInput" name="dateInput"
+                   value="2021-01-01"
+                   min="2021-01-01" max="2021-12-31">
+          </div>
+          <div class="card-body">
+            <div class="table">
+              <table class="table tablesorter " id="">
+                <thead class=" text-primary">
+                    <tr>
+                      <th class="text-center">Date</th>
+                      <th class="text-center">Time</th>
+                      <th class="text-center">Air temperature (°C)</th>
+                      <th class="text-center">Wind speed (m/s)</th>
+                      <th class="text-center">Wind direction (deg)</th>
+                      <th class="text-center">Pressure (atm)</th>
+                      <th class="text-center">System Power Generated (kW)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for power in power[-25:] %}
+                    <tr>
+                      <td class="text-center">{{ power[0] }}</td>
+                      <td class="text-center">{{ power[1] }}</td>
+                      <td class="text-center">{{ power[2]}}</td>
+                      <td class="text-center">{{ power[3] }}</td>
+                      <td class="text-center">{{ power[4] }}</td>
+                      <td class="text-center">{{ power[5] }}</td>
+                      <td class="text-center">{{ power[6] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+              </table>
+          
+            </div>
+          </div>
+        </div>
+      </div>
+      
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card " >
+              <div class="card-header">
+                <h4 class="card-title"> Dati meteo</h4>
+              </div>
+              <div class="card-body">
+                <table class="table tablesorter" id="">
+                  <thead class="text-primary">
+                    <tr>
+                      <th class="text-center">Date</th>
+                      <th class="text-center">Hour</th>
+                      <th class="text-center">Temperature</th>
+                      <th class="text-center">Speed</th>
+                      <th class="text-center">Direction</th>
+                      <th class="text-center">Pressure</th>
+                      <th class="text-center">Power</th>
+                      <th class="text-center">Description</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                    {% for meteo in meteo[-25:] %}
+                  
+                        <tr>
+                            <td class="text-center">{{ meteo[0] }}</td>
+                            <td class="text-center">{{ meteo[1] }}</td>
+                            <td class="text-center">{{ meteo[2] }}</td>
+                            <td class="text-center">{{ meteo[3] }}</td>
+                            <td class="text-center">{{ meteo[4] }}</td>
+                            <td class="text-center">{{ meteo[5] }}</td>
+                            <td class="text-center">{{ meteo[6] }}</td>
+                            <td class="text-center">{{ meteo[7] }}</td>
+                        </tr>
+              
+                {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,335 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+<div class="row">
+    <div class="col-12">
+          <div class="card">
+              <div class="card-header">
+                  <div class="row">
+                    <div class="col-sm-6 text-left">
+                      <h2 class="card-title">Mappa e dati delle Pale della Zona 1</h2>
+                    </div>
+                  </div>        
+
+                  <select id="location-select-1">
+                      <option value="zone1turbine1">Pala 1</option>
+                      <option value="zone1turbine2">Pala 2</option>
+                      <option value="zone1turbine3">Pala 3</option>
+                    </select>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-4 col-md-12">
+                      <div id="map-container-1">
+                        <img id="map-image-zone1" src="/static/assets/img/pale/zone1turbine1.png">
+                    </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12">
+                      <div class="table">
+                        <table class="table tablesorter" id="">
+                            <thead class="text-primary">
+                              <tr>
+                                <th class="text-center">zone</th>
+                                <th class="text-center">id_pala</th>
+                                <th class="text-center">date</th>
+                                <th class="text-center">hour</th>
+                                <th class="text-center">speed</th>
+                                <th class="text-center">power</th>
+                                <th class="text-center">current</th>
+                                <th class="text-center">error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              {% for pala in arduino_all_data %}
+                              {% if pala.zone == "zona 1" %}
+                                  <tr>
+                                      <td class="text-center">{{pala.zone}}</td>
+                                      <td class="text-center">{{ pala.id }}</td>
+                                      <td class="text-center">{{ pala.date }}</td>
+                                      <td class="text-center">{{ pala.hour }}</td>
+                                      <td class="text-center">{{ pala.speed }}</td>
+                                      <td class="text-center">{{ pala.power }}</td>
+                                      <td class="text-center">{{ pala.current }}</td>
+                                      <td class="text-center">{{ pala.error }}</td>
+                                  </tr>
+                              {% endif %}
+                          {% endfor %}
+                          
+                            </tbody>
+                          </table>
+                      </div>
+                    </div>
+                  </div>
+
+                        
+                          <table id="location1-table" style="display: block;">
+                            
+                          </table>
+                          
+                          <table id="location2-table" style="display: none;">
+                            <!-- tabella per location2 -->
+                          </table>
+                          
+                          <table id="location3-table" style="display: none;">
+                            <!-- tabella per location3 -->
+                          </table>
+                          
+                          <script>
+                            // Gestisci il cambiamento della selezione nella combobox
+                            var locationSelect1 = document.getElementById('location-select-1');
+                            locationSelect1.addEventListener('change', function() {
+                              var locationImage = null;
+                              if (locationSelect1.value === 'zone1turbine1') {
+                                locationImage = '/static/assets/img/pale/zone1turbine1.png';
+                                // visualizza la tabella per location1
+                                document.getElementById('location1-table').style.display = 'block';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect1.value === 'zone1turbine2') {
+                                locationImage = '/static/assets/img/pale/zone1turbine2.png';
+                                // visualizza la tabella per location2
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'block';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect1.value === 'zone1turbine3') {
+                                locationImage = '/static/assets/img/pale/zone1turbine3.png';
+                                // visualizza la tabella per location3
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'block';
+                              }
+                              
+                              // Cambia l'immagine della mappa per la nuova posizione
+                              document.getElementById('map-image-zone1').src = locationImage;
+                            });
+                          </script>
+                    
+                  </div>  
+          </div>
+
+</div>
+<div class="row">
+    <div class="col-12">
+          <div class="card">
+              <div class="card-header">
+                  <div class="row">
+                    <div class="col-sm-6 text-left">
+                      <h2 class="card-title">Mappa e dati delle Pale della Zona 2</h2>
+                    </div>
+                  </div>
+                  
+
+                  <select id="location-select-2">
+                      <option value="zone2turbine1">Pala 1</option>
+                      <option value="zone2turbine2">Pala 2</option>
+                      <option value="zone2turbine3">Pala 3</option>
+                    </select>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-4 col-md-12">
+                      <div id="map-container-2">
+                        <img id="map-image-zone2" src="/static/assets/img/pale/zone2turbine1.png">
+                    </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12">
+                      <div class="table">
+                        <table class="table tablesorter" id="">
+                          <thead class="text-primary">
+                            <tr>
+                              <th class="text-center">zone</th>
+                              <th class="text-center">id_pala</th>
+                              <th class="text-center">date</th>
+                              <th class="text-center">hour</th>
+                              <th class="text-center">speed</th>
+                              <th class="text-center">power</th>
+                              <th class="text-center">current</th>
+                              <th class="text-center">error</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                            {% for pala in arduino_all_data %}
+                            {% if pala.zone == "zona 2" %}
+                                <tr>
+                                    <td class="text-center">{{pala.zone}}</td>
+                                    <td class="text-center">{{ pala.id }}</td>
+                                    <td class="text-center">{{ pala.date }}</td>
+                                    <td class="text-center">{{ pala.hour }}</td>
+                                    <td class="text-center">{{ pala.speed }}</td>
+                                    <td class="text-center">{{ pala.power }}</td>
+                                    <td class="text-center">{{ pala.current }}</td>
+                                    <td class="text-center">{{ pala.error }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                        
+                          <table id="location1-table" style="display: block;">
+                            <!-- tabella per location1 -->
+                          </table>
+                          
+                          <table id="location2-table" style="display: none;">
+                            <!-- tabella per location2 -->
+                          </table>
+                          
+                          <table id="location3-table" style="display: none;">
+                            <!-- tabella per location3 -->
+                          </table>
+                          
+                          <script>
+                            // Gestisci il cambiamento della selezione nella combobox
+                            var locationSelect2 = document.getElementById('location-select-2');
+                            locationSelect2.addEventListener('change', function() {
+                              var locationImage2 = null;
+                              if (locationSelect2.value === 'zone2turbine1') {
+                                locationImage= '/static/assets/img/pale/zone2turbine1.png';
+                                // visualizza la tabella per location1
+                                document.getElementById('location1-table').style.display = 'block';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect2.value === 'zone2turbine2') {
+                                locationImage = '/static/assets/img/pale/zone2turbine2.png';
+                                // visualizza la tabella per location2
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'block';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect2.value === 'zone2turbine3') {
+                                locationImage = '/static/assets/img/pale/zone2turbine3.png';
+                                // visualizza la tabella per location3
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'block';
+                              }
+                              
+                              // Cambia l'immagine della mappa per la nuova posizione
+                              document.getElementById('map-image-zone2').src = locationImage;
+                            });
+                          </script>
+                    
+                  </div>  
+          </div>
+
+</div>
+<div class="row">
+    <div class="col-12">
+          <div class="card">
+              <div class="card-header">
+                  <div class="row">
+                    <div class="col-sm-6 text-left">
+                      <h2 class="card-title">Mappa e dati delle Pale della Zona 3</h2>
+                    </div>
+                  </div>
+                  
+
+                  <select id="location-select-3">
+                      <option value="zone3turbine1">Pala 1</option>
+                      <option value="zone3turbine2">Pala 2</option>
+                      <option value="zone3turbine3">Pala 3</option>
+                    </select>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-4 col-md-12">
+                      <div id="map-container-3">
+                        <img id="map-image-zone3" src="/static/assets/img/pale/zone3turbine1.png">
+                    </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12">
+                      <div class="table">
+                        <table class="table tablesorter" id="">
+                            <thead class="text-primary">
+                              <tr>
+                                <th class="text-center">zone</th>
+                                <th class="text-center">id_pala</th>
+                                <th class="text-center">date</th>
+                                <th class="text-center">hour</th>
+                                <th class="text-center">speed</th>
+                                <th class="text-center">power</th>
+                                <th class="text-center">current</th>
+                                <th class="text-center">error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              {% for pala in arduino_all_data %}
+                              {% if pala.zone == "zona 3" %}
+                                  <tr>
+                                      <td class="text-center">{{pala.zone}}</td>
+                                      <td class="text-center">{{ pala.id }}</td>
+                                      <td class="text-center">{{ pala.date }}</td>
+                                      <td class="text-center">{{ pala.hour }}</td>
+                                      <td class="text-center">{{ pala.speed }}</td>
+                                      <td class="text-center">{{ pala.power }}</td>
+                                      <td class="text-center">{{ pala.current }}</td>
+                                      <td class="text-center">{{ pala.error }}</td>
+                                  </tr>
+                              {% endif %}
+                          {% endfor %}
+                          
+                            </tbody>
+                          </table>
+                      </div>
+                    </div>
+                  </div>
+
+                        
+                          <table id="location1-table" style="display: block;">
+                            <!-- tabella per location1 -->
+                          </table>
+                          
+                          <table id="location2-table" style="display: none;">
+                            <!-- tabella per location2 -->
+                          </table>
+                          
+                          <table id="location3-table" style="display: none;">
+                            <!-- tabella per location3 -->
+                          </table>
+                          
+                          <script>
+                            // Gestisci il cambiamento della selezione nella combobox
+                            var locationSelect3 = document.getElementById('location-select-3');
+                            locationSelect3.addEventListener('change', function() {
+                              var locationImage = null;
+                              if (locationSelect3.value === 'zone3turbine1') {
+                                locationImage = '/static/assets/img/pale/zone3turbine1.png';
+                                // visualizza la tabella per location1
+                                document.getElementById('location1-table').style.display = 'block';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect3.value === 'zone3turbine2') {
+                                locationImage = '/static/assets/img/pale/zone3turbine2.png';
+                                // visualizza la tabella per location2
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'block';
+                                document.getElementById('location3-table').style.display = 'none';
+                              } else if (locationSelect3.value === 'zone3turbine3') {
+                                locationImage = '/static/assets/img/pale/zone3turbine3.png';
+                                // visualizza la tabella per location3
+                                document.getElementById('location1-table').style.display = 'none';
+                                document.getElementById('location2-table').style.display = 'none';
+                                document.getElementById('location3-table').style.display = 'block';
+                              }
+                              
+                              // Cambia l'immagine della mappa per la nuova posizione
+                              document.getElementById('map-image-zone3').src = locationImage;
+                            });
+                          </script>
+                    
+                  </div>  
+          </div>
+
+</div>
+
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

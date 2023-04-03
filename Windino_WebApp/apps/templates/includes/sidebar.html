@@ -1,0 +1,43 @@
+
+<div class="sidebar" data="blue">
+    <!--
+      Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red"
+  -->
+    <div class="sidebar-wrapper">
+        <div class="logo">
+            <a href="/start" class="simple-text logo-normal">
+                <img src="/static/assets/img/logo_white.png">
+            </a>
+        </div>
+
+        <ul class="nav">
+            <li class="{% if 'index' in segment %} active {% endif %} ">
+                <a href="/index"> <!-- ho modificato da '/' a '/index.html'-->
+                    <i class="tim-icons icon-chart-pie-36"></i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+            
+            <li class="{% if 'pale' in segment %} active {% endif %}">
+                <a href="/pale">
+                  <table>
+                    <tr>
+                      <td><img src="/static/assets/img/turbine_sidebar.png" sizes="21x22"></td>
+                      <td><p>Turbin List</p></td>
+                    </tr>
+                  </table>
+                </a>
+              </li>
+              
+              <li class="{% if 'tables' in segment %} active {% endif %}">
+                <a href="/tables">
+                    <i class="tim-icons icon-notes"></i>
+                    <p>Table List</p>
+                </a>
+                    </li>
+
+                
+             
+        </ul>
+    </div>
+</div>
