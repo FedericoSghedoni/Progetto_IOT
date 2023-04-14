@@ -29,7 +29,7 @@ def download_all():
 
 
 def download():
-	#print("Download")
+	print("Download")
 	meteo_json = requests.get(url).json()
 	current_hour = int(meteo_json["location"]["localtime"].split(' ')[1].split(':')[0])
 
@@ -65,7 +65,7 @@ def download():
 	db_in.append(description)
 	db_in.append(power)
 	insert_meteo(db_in)
-	#print("finish download")
+	print("finish download")
 
 
 class WeatherThread(Thread):
