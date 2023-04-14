@@ -1,12 +1,14 @@
-# -*- encoding: utf-8 -*-
-
 import os
 from flask_migrate import Migrate
 from flask_minify import Minify
 from sys import exit
 
-from apps.config import config_dict
-from apps import create_app, db
+from Winduino_WebApp.apps.config import config_dict
+from Winduino_WebApp.apps import create_app, db
+
+from weather_thread import WeatherThread
+from direction_thread import DirectionThread
+from arduino_thread import ArduinoThread
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = (os.getenv('DEBUG', 'False') == 'True')
@@ -33,5 +35,23 @@ if DEBUG:
     app.logger.info('ASSETS_ROOT = ' + app_config.ASSETS_ROOT)
 
 if __name__ == "__main__":
+    # START SERVER'S THREADS
+    # start weather thread (download weather periodially and predicts power generation)
+    weather_t = WeatherThread()
+    weather_t.start()
+
+    # start direction thread (modify turbines direction accordingly with the wind)
+    zone_coords = {
+        "01": (44.5, 10.9)
+    }
+    direction_t = DirectionThread(zone_coords)
+    direction_t.start()
+
+    # start arduino thread (receive turbines info)
+    zone_turbine = {
+        "01": ["001", "002"]
+    }
+    arduino_t = ArduinoThread(zone_turbine)
+    arduino_t.start()
     
     app.run()
