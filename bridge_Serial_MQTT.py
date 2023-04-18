@@ -21,6 +21,7 @@ class Bridge():
 		self.port = port
 		self.setupSerial(port)
 		self.setupMQTT()
+		self.timer = 0
  
   
 	def setupSerial(self, port):        
@@ -110,14 +111,23 @@ class Bridge():
     
 			elif self.currentState == 4:
 				self.ser.write(b'A1') #Ruota
-				futureState = 0
+				self.timer = time.time()
+				futureState = 6
     
 			elif self.currentState == 5:
 				self.ser.write(b'L1') #Accendi Led Malfunzionamento
 				futureState = 0
+
+			elif self.currentState == 6:
+				if (time.time() - self.timer)/1000 >= 3000:
+					self.ser.write(b'A0') #Ruota Pale verso vento
+					futureState = 0
     
 			self.currentState = futureState
 
+		elif msg.topic == self.zona + '/' + self.id + '/' + "direction":
+			self.ser.write(b'D')  # Ruota Pale verso vento
+			self.ser.write(msg.payload)
 		elif 'R_value_' in msg.topic:
 			value = msg.payload.decode()
 			zona, id, name = msg.topic.split('/')

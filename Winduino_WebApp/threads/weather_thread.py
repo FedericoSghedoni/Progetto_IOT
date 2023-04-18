@@ -7,8 +7,7 @@ import time
 import schedule
 import requests
 from lstm_model import predict
-from database import insert_meteo
-from database import get_recent_meteo
+from database import insert_meteo, get_recent_meteo
 import numpy as np
 
 url = "http://api.weatherapi.com/v1/forecast.json?key=00590921f850414bb73194114232303&q=44.64,10.92&days=2&aqi=no&alerts=no"

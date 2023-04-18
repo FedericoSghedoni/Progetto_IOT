@@ -19,7 +19,7 @@ power_register = 0
 def on_connect(client, userdata, flags, rc):
 	# Dice cosa fare quando si connette al broker
 	if rc == 0:
-		print("Connected to MQTT Broker!")
+		print("ArduinoThread Connected to MQTT Broker!")
 	else:
 		print("Failed to connect, return code %d\n", rc)
 
@@ -67,7 +67,7 @@ class ArduinoThread(Thread):
 		# initialize register dictionary
 		for z in zt_list:
 			for t in zt_list[z]:
-				zt_list[z + "/" + t] = {}
+				turbine_register[z + "/" + t] = {}
 
 	def run(self) -> None:
 		while True:

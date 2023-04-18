@@ -4,6 +4,7 @@ import os
 from flask_migrate import Migrate
 from flask_minify import Minify
 from sys import exit
+from threading import *
 
 from apps.config import config_dict
 from apps import create_app, db
@@ -32,6 +33,17 @@ if DEBUG:
     app.logger.info('DBMS        = ' + app_config.SQLALCHEMY_DATABASE_URI)
     app.logger.info('ASSETS_ROOT = ' + app_config.ASSETS_ROOT)
 
+
+class WebAppThread(Thread):
+    def __init__(self):
+        super(WebAppThread, self).__init__()
+
+    def run(self):
+        app.run(debug=True, use_reloader=False)
+
+
 if __name__ == "__main__":
-    
+    #wa_thread = WebAppThread()
+    #wa_thread.start()
+
     app.run()

@@ -11,7 +11,7 @@ port = 1883
 
 def check_connection(client, userdata, flags, rc):
 	if rc == 0:
-		print("MQTT Client connected")
+		print("DirectionThread MQTT Client connected")
 	else:
 		print("MQTT Connection Error", rc)
 
@@ -47,12 +47,13 @@ class DirectionThread(Thread):
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 
-			if abs(self.direction[zone_name] - direction) > 10:
+			if 10 < abs(self.direction[zone_name] - direction) < 350:
 				print(f"Change direction of zone {zone_name} from {self.direction[zone_name]} to {direction}")
 				self.direction[zone_name] = direction
+				direction = str(direction).zfill(3)
 
 				#self.client.connect(broker, port)
-				self.client.publish(f"{zone_name}/direction", self.direction[zone_name])
+				self.client.publish(f"{zone_name}/direction", direction)
 
 
 if __name__ == "__main__":

@@ -22,5 +22,3 @@ if __name__ == '__main__':
     }
     arduino_t = ArduinoThread(zone_turbine)
     arduino_t.start()
-
-    #run()
