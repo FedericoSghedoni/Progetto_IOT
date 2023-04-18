@@ -17,7 +17,7 @@ float power_mW[] = {0, 0};
 float revcount = 0;
 int n = 0;
 
-int currentstate;
+int currentstate = 0;
 
 void send_packs(){
     bridge_connection.print_pack(loadmean[0], "V_value_");    //voltage value V
@@ -98,34 +98,20 @@ if(Serial.available() > 0){
 
     int futurestate;
     if(currentstate == 0 && val == 'A') futurestate = 1;
-    if(currentstate == 1 && val == '1') futurestate = 2;    //acceso
-    if(currentstate == 2 && val == 'S') futurestate = 3;
-    if(currentstate == 3 && val == '1') futurestate = 4;    //spento
-    if(currentstate == 1 && val == '2') futurestate = 5;    //acceso
-    if(currentstate == 5 && val == 'S') futurestate = 6;
-    if(currentstate == 6 && val == '2') futurestate = 7;    //spento
+    if(currentstate == 1 && val == '1') {
+      futurestate = 0;    
+      //ruota
+    }
+    if(currentstate == 0 && val == 'L') futurestate = 2;
+    if(currentstate == 2 && val == '0') {
+      futurestate = 0;    
+      //digitalWrite(13,LOW);
+    }
+    if(currentstate == 2 && val == '1') {
+      futurestate = 0;    
+      //digitalWrite(13,HIGH);
+    }
 
-    if(currentstate != futurestate){
-      if(futurestate == 2) {
-        digitalWrite(13,HIGH);
-      }
-      if(futurestate == 4) {
-        digitalWrite(13,LOW);
-        futurestate = 0;
-      }
-      if(futurestate == 5) {
-        digitalWrite(12,HIGH);
-      }
-      if(futurestate == 7) {
-        digitalWrite(12,LOW);
-        futurestate = 0;
-      }
-    }
-    else{
-      if(currentstate < 2) futurestate = 0;
-      if(currentstate >= 2 && currentstate < 4) futurestate = 2;
-      if(currentstate >= 5) futurestate = 5;
-    }
     currentstate = futurestate;
   }
 

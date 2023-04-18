@@ -74,46 +74,51 @@ class Bridge():
 		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "Tsensor_0")
 		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_0")
 		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_1")
-		self.clientMQTT.subscribe(self.zona + '/+/Tsensor_0')
+		self.clientMQTT.subscribe(self.zona + '/+/R_value_')
 
     # The callback for when a PUBLISH message is received from the server.
 	def on_message(self, client, userdata, msg):
-		print(msg.topic + " " + str(msg.payload))
-		if msg.topic == self.zona + '/' + self.id + '/' + "LvLsensor_0":
-			if float(msg.payload.decode())<15:
-				self.ser.write(b'A0')
-			else:
-				self.ser.write(b'S0')
-		elif msg.topic == self.zona + '/' + self.id + '/' + "Tsensor_0":
+		print(msg.topic + " " + str(msg.payload)) #stampa DEBUG
+		if msg.topic == self.zona + '/' + self.id + '/' + "R_value_":
 			dati = list(self.datiZona.values())
 			media = sum(dati) / len(dati)
 			futureState = None
+			value = float(msg.payload.decode())
 			if self.currentState == 0:
-				if float(msg.payload.decode())>media+1:
+				if value > self.sogliaMax:
 					futureState = 1
-				elif float(msg.payload.decode())<media-5:
+					self.ser.write(b'L0') #Spegni Led Malfunzionamento
+				elif value < media-15 or value < 0:
 					futureState = 2
 				else:
-					self.ser.write(b'S1')
+					self.ser.write(b'L0') #Spegni Led Malfunzionamento
+     
 			elif self.currentState == 1:
-				if float(msg.payload.decode())>self.sogliaMax:
-					futureState = 3
-				else: futureState = 0
+				if value > media+10:
+					futureState = 4
+				else: futureState = 3
+
 			elif self.currentState == 2:
-				if float(msg.payload.decode())<self.sogliaMin:
-					futureState = 3
+				if value < media-15 or value < 0:
+					futureState = 5
 				else: futureState = 0
+        
 			elif self.currentState == 3:
-				self.ser.write(b'A1')
+				if float(value) > self.sogliaMax:
+					futureState = 4
+				else: futureState = 0
+    
+			elif self.currentState == 4:
+				self.ser.write(b'A1') #Ruota
 				futureState = 0
+    
+			elif self.currentState == 5:
+				self.ser.write(b'L1') #Accendi Led Malfunzionamento
+				futureState = 0
+    
 			self.currentState = futureState
 
-		elif msg.topic == self.zona + '/' + self.id + '/' + "LvLsensor_1":
-			if float(msg.payload.decode())<15:
-					self.ser.write(b'A2')
-			else:
-				self.ser.write(b'S2')
-		elif 'Tsensor_0' in msg.topic:
+		elif 'R_value_' in msg.topic:
 			value = msg.payload.decode()
 			zona, id, name = msg.topic.split('/')
 			if self.id != id:
@@ -140,7 +145,7 @@ class Bridge():
 				self.buffer.append(lastchar)
 
 	def useData(self):
-		print(self.buffer)
+		print(self.buffer) #stampa DEBUG
 		# I have received a packet from the serial port. I can use it
 
 		if self.buffer[0] != b'\xff':
