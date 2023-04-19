@@ -1,8 +1,10 @@
 import sqlite3
+import os
 
 
 def create_tables():
-	connection = sqlite3.connect("database.db")
+	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
 
 	cursor = connection.cursor()
 	cursor.execute("""CREATE TABLE arduino (
@@ -28,7 +30,9 @@ def create_tables():
 
 
 def insert_arduino(zone, idpala, date, hour, d):
-	connection = sqlite3.connect("database.db")
+	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
+
 	with connection:
 		cursor = connection.cursor()
 
@@ -38,7 +42,9 @@ def insert_arduino(zone, idpala, date, hour, d):
 
 
 def insert_meteo(x):
-	connection = sqlite3.connect("database.db")
+	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
+
 	with connection:
 		cursor = connection.cursor()
 
@@ -47,7 +53,9 @@ def insert_meteo(x):
 
 
 def get_recent_meteo(n=47):
-	connection = sqlite3.connect("database.db")
+	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
+
 	cursor = connection.cursor()
 	result = cursor.execute(f"""SELECT date, hour, temperature, speed, direction, pressure
 	FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}""")
@@ -55,7 +63,9 @@ def get_recent_meteo(n=47):
 
 
 def update_power(new_val, date, hour):
-	connection = sqlite3.connect("database.db")
+	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
+
 	with connection:
 		cursor = connection.cursor()
 		cursor.execute(f"UPDATE meteo SET power={new_val} WHERE date='{date}' AND hour='{hour}'")
@@ -72,7 +82,7 @@ if __name__ == '__main__':
 		"speed": 100
 	}
 	# Insert the dic values inside arduino table
-	#insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
+	insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
 
 	# Return info for the specified turbine
 	#get_turbin_info("001")
@@ -80,7 +90,7 @@ if __name__ == '__main__':
 	m1 = ["2023-03-17", "12:00:00", 11.1, 3.05, 74, 1.0086, None, "overcast clouds"]
 	# Insert the m values inside meteo table
 	#insert_meteo(m1)
-	update_power(11.0, "2023-03-23", "12:00")
+	#update_power(11.0, "2023-03-23", "12:00")
 
 	#rows = cursor.execute("SELECT name, species, tank_number FROM fish").fetchall()
 	#print(rows)
