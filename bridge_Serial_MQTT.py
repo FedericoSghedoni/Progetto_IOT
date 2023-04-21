@@ -76,6 +76,7 @@ class Bridge():
 		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_0")
 		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_1")
 		self.clientMQTT.subscribe(self.zona + '/+/R_value_')
+		self.clientMQTT.subscribe(self.zona + '/+/Error')
 
     # The callback for when a PUBLISH message is received from the server.
 	def on_message(self, client, userdata, msg):
@@ -117,7 +118,8 @@ class Bridge():
 			elif self.currentState == 5:
 				self.ser.write(b'L1') #Accendi Led Malfunzionamento
 				futureState = 0
-
+				self.clientMQTT.publish(self.zona + '/' + self.id + '/' + Error, self.id)
+				
 			elif self.currentState == 6:
 				if (time.time() - self.timer)/1000 >= 3000:
 					self.ser.write(b'A0') #Ruota Pale verso vento
