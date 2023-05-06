@@ -1,17 +1,11 @@
 import serial
 import serial.tools.list_ports
-import socket
-
-import configparser
-import requests
 import paho.mqtt.client as mqtt
 import time
 
 class Bridge():
 
 	def __init__(self, port):
-		self.config = configparser.ConfigParser()
-		self.config.read('config.ini')
 		self.buffer = []
 		self.datiZona = {}
 		self.sogliaMax = 35
@@ -22,8 +16,7 @@ class Bridge():
 		self.setupSerial(port)
 		self.setupMQTT()
 		self.timer = 0
- 
-  
+
 	def setupSerial(self, port):        
 		try:
 			# apre la porta seriale
@@ -47,108 +40,106 @@ class Bridge():
 			else:
 				error = self.ser.read(27)
 				print(error)
-				# se l'self non ha risposto correttamente, chiude la porta seriale
+				# se self non ha risposto correttamente, chiude la porta seriale
 				self.ser.close()
 				print('Errore nella connessione')
 				return False
 		except (OSError, serial.SerialException):
 			pass
 
-
 	def setupMQTT(self):
-		self.clientMQTT = mqtt.Client()
+		self.clientMQTT = mqtt.Client("Bridge" + self.zona + "_" + self.id)
 		self.clientMQTT.on_connect = self.on_connect
-		self.clientMQTT.on_message = self.on_message
-		print("connecting to MQTT broker...")
-		self.clientMQTT.connect(
-			self.config.get("MQTT","Server", fallback= "broker.hivemq.com"),
-			self.config.getint("MQTT","Port", fallback= 1883),
-			60)
+		#self.clientMQTT.on_message = self.on_message
+		self.clientMQTT.on_log = self.on_log
+		broker = 'localhost'
+		port = 1883
+		self.clientMQTT.connect(broker, port)
 		self.clientMQTT.loop_start()
 
-
 	def on_connect(self, client, userdata, flags, rc):
-		print("Connected with result code " + str(rc))
+		if rc == 0:
+			print("Bridge Connected to MQTT Broker!")
+		else:
+			print("Failed to connect, return code %d\n", rc)
 
 		# Subscribing in on_connect() means that if we lose the connection and
 		# reconnect then subscriptions will be renewed.
-		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "Tsensor_0")
-		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_0")
-		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "LvLsensor_1")
+		self.clientMQTT.subscribe(self.zona + '/' + self.id + '/' + "direction")
 		self.clientMQTT.subscribe(self.zona + '/+/R_value_')
 		self.clientMQTT.subscribe(self.zona + '/+/Error')
 
-    # The callback for when a PUBLISH message is received from the server.
+	# The callback for when a PUBLISH message is received from the server.
 	def on_message(self, client, userdata, msg):
-		print(msg.topic + " " + str(msg.payload)) #stampa DEBUG
+		print("Received " + msg.topic + " " + str(msg.payload))  # stampa DEBUG
 		if msg.topic == self.zona + '/' + self.id + '/' + "R_value_":
 			dati = list(self.datiZona.values())
-			media = sum(dati) / len(dati)
-			futureState = None
-			value = float(msg.payload.decode())
-			if self.currentState == 0:
-				if value > self.sogliaMax:
-					futureState = 1
-					self.ser.write(b'L0') #Spegni Led Malfunzionamento
-				elif value < media-15 or value < 0:
-					futureState = 2
-				else:
-					self.ser.write(b'L0') #Spegni Led Malfunzionamento
+			if len(dati) != 0:
+				media = sum(dati) / len(dati)
+				futureState = None
+				value = float(msg.payload.decode())
+				if self.currentState == 0:
+					if value > self.sogliaMax:
+						futureState = 1
+						self.ser.write(b'L0')  # Spegni Led Malfunzionamento
+						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 0)
+					elif value < media-15 or value < 0:  # controllo errori
+						futureState = 2
+					else:
+						self.ser.write(b'L0')  # Spegni Led Malfunzionamento
+						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 0)
      
-			elif self.currentState == 1:
-				if value > media+10:
-					futureState = 4
-				else: futureState = 3
+				elif self.currentState == 1:  # check velocità > media
+					if value > media+10:
+						self.ser.write(b'A1')  # Ruota
+						self.timer = time.time()
+						futureState = 4
+					else: futureState = 3
 
-			elif self.currentState == 2:
-				if value < media-15 or value < 0:
-					futureState = 5
-				else: futureState = 0
-        
-			elif self.currentState == 3:
-				if float(value) > self.sogliaMax:
-					futureState = 4
-				else: futureState = 0
-    
-			elif self.currentState == 4:
-				self.ser.write(b'A1') #Ruota
-				self.timer = time.time()
-				futureState = 6
-    
-			elif self.currentState == 5:
-				self.ser.write(b'L1') #Accendi Led Malfunzionamento
-				futureState = 0
-				self.clientMQTT.publish(self.zona + '/' + self.id + '/' + Error, self.id)
-				
-			elif self.currentState == 6:
-				if (time.time() - self.timer)/1000 >= 3000:
-					self.ser.write(b'A0') #Ruota Pale verso vento
+				elif self.currentState == 2:  # stato intermedio, 2° check errori
+					if value < media-15 or value < 0:
+						self.ser.write(b'L1')  # Accendi Led Malfunzionamento
+						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 1)
 					futureState = 0
-    
-			self.currentState = futureState
+
+				elif self.currentState == 3:  # stato intermedio, 2° check > soglia
+					if value > self.sogliaMax:
+						self.ser.write(b'A1')  # Ruota
+						self.timer = time.time()
+						futureState = 4
+					else: futureState = 0
+
+				elif self.currentState == 4:
+					if (time.time() - self.timer)/1000 >= 3000:
+						self.ser.write(b'A0')  # Ruota Pale verso vento
+						futureState = 0
+
+				self.currentState = futureState
 
 		elif msg.topic == self.zona + '/' + self.id + '/' + "direction":
+			print("ciao")
 			self.ser.write(b'D')  # Ruota Pale verso vento
 			self.ser.write(msg.payload)
+			print(self.ser.readString())
+
 		elif 'R_value_' in msg.topic:
 			value = msg.payload.decode()
 			zona, id, name = msg.topic.split('/')
 			if self.id != id:
-				self.datiZona[id] = value
-		hostname = socket.gethostname()    
-		IPAddr = socket.gethostbyname(hostname)
-		url = IPAddr + "/newdata" + f"/{msg.topic}" + f"/{msg.payload.decode()}"
-		try:
-			requests.post(url)
-		except requests.exceptions.RequestException as e:
-			raise SystemExit(e)
+				self.datiZona[id] = int(value)
+		elif 'Error' in msg.topic:
+			if self.id != id:
+				self.datiZona.pop(id)
+
+	def on_log(self, client, userdata, level, buf):
+		print("log: ", buf)
 
 	def readData(self):
 		#look for a byte from serial
-		while self.ser.in_waiting>0:
+		while self.ser.in_waiting > 0:
 			# data available from the serial port
-			lastchar=self.ser.read(1)
-			if lastchar==b'\xfe': #EOL
+			lastchar = self.ser.read(1)
+			if lastchar == b'\xfe':  # EOL
 				print("\nValue received")
 				self.useData()
 				self.buffer = []
@@ -157,7 +148,7 @@ class Bridge():
 				self.buffer.append(lastchar)
 
 	def useData(self):
-		print(self.buffer) #stampa DEBUG
+		#print(self.buffer) #stampa DEBUG
 		# I have received a packet from the serial port. I can use it
 
 		if self.buffer[0] != b'\xff':
@@ -175,5 +166,5 @@ class Bridge():
 		sensorLen = len(self.buffer) - (SoN)
 		for j in range (sensorLen):
 			sensor_name = sensor_name + str(self.buffer[j + SoN].decode())
-		self.clientMQTT.publish(self.zona + '/' + self.id + '/' + sensor_name, val)
-		self.clientMQTT.on_message
+		res, mid = self.clientMQTT.publish(self.zona + '/' + self.id + '/' + sensor_name, val)
+

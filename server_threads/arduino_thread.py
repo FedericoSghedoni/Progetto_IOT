@@ -37,7 +37,7 @@ def on_message(client, userdata, msg):
 	topic = msg.topic.split("/")
 	key = topic[0] + "/" + topic[1]
 
-	if topic[2] == 'power':
+	if topic[2] == 'mW_value_':
 		power_register += float(msg.payload.decode())
 
 	turbine_register[key][topic[2]] = msg.payload.decode()
@@ -55,10 +55,10 @@ class ArduinoThread(Thread):
 		self.client.on_message = on_message
 		self.client.connect(broker, port)
 
-		self.client.subscribe("+/+/power")
-		self.client.subscribe("+/+/current")
-		self.client.subscribe("+/+/speed")
-		self.client.subscribe("+/+/error")
+		self.client.subscribe("+/+/mW_value_")
+		self.client.subscribe("+/+/mA_value_")
+		self.client.subscribe("+/+/R_value_")
+		self.client.subscribe("+/+/Error")
 
 		self.client.loop_start()
 

@@ -17,9 +17,10 @@ def check_connection(client, userdata, flags, rc):
 
 
 class DirectionThread(Thread):
-	def __init__(self, zones):
+	def __init__(self, zones, zone_turbine):
 		super(DirectionThread, self).__init__()
 		self.zones = zones
+		self.zone_turbine = zone_turbine
 		self.direction = {}
 		self.client = mqtt_client.Client("wind_thread")
 		self.client.on_connect = check_connection
@@ -33,7 +34,9 @@ class DirectionThread(Thread):
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 			self.direction[zone_name] = direction
 
-			self.client.publish(f"{zone_name}/direction", self.direction[zone_name])
+			for turb in self.zone_turbine[zone_name]:
+				self.client.publish(f"{zone_name}/{turb}/direction", str(self.direction[zone_name]).zfill(3))
+				print(f"Pubblicata {zone_name}/{turb}/direction")
 
 		schedule.every(10).minutes.do(self.update)
 
@@ -47,13 +50,15 @@ class DirectionThread(Thread):
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 
-			if 10 < abs(self.direction[zone_name] - direction) < 350:
+			if 5 < abs(self.direction[zone_name] - direction) < 355:
 				print(f"Change direction of zone {zone_name} from {self.direction[zone_name]} to {direction}")
 				self.direction[zone_name] = direction
 				direction = str(direction).zfill(3)
 
 				#self.client.connect(broker, port)
-				self.client.publish(f"{zone_name}/direction", direction)
+				for turb in self.zone_turbine[zone_name]:
+					self.client.publish(f"{zone_name}/{turb}/direction", direction)
+					print(f"Pubblicata {zone_name}/{turb}/direction")
 
 
 if __name__ == "__main__":

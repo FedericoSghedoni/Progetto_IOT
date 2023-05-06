@@ -98,9 +98,13 @@ if(Serial.available() > 0){
 
     int futurestate;
     if(currentstate == 0 && val == 'A') futurestate = 1;
+    if(currentstate == 1 && val == '0') {
+      futurestate = 0;    
+      //ruota verso vento
+    }
     if(currentstate == 1 && val == '1') {
       futurestate = 0;    
-      //ruota
+      //ruota dir opposta al vento
     }
     if(currentstate == 0 && val == 'L') futurestate = 2;
     if(currentstate == 2 && val == '0') {
@@ -111,7 +115,11 @@ if(Serial.available() > 0){
       futurestate = 0;    
       //digitalWrite(13,HIGH);
     }
-
+    if(currentstate == 0 && val == 'D') futurestate = 3;
+    if(currentstate == 3) {
+      String direction = Serial.readString();
+      Serial.print(direction);     
+    }      
     currentstate = futurestate;
   }
 
