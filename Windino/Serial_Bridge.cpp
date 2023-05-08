@@ -1,13 +1,14 @@
-#include "Serial_Bridge.h" 
+#include "Serial_Bridge.h"
+#include "Turbine.h" 
 #include <math.h>
 
 /*!
   *  @brief  Instantiates a new Serial_Bridge class
   *  @param 
   */
-Serial_Bridge::Serial_Bridge(String zone, String id) {
-  serial_zone = zone;
-	serial_id = id;
+Serial_Bridge::Serial_Bridge(Turbine turbine) {
+  serial_zone = turbine.zone;
+	serial_id = turbine.id;
 }
 
 /*!

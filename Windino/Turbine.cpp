@@ -1,15 +1,18 @@
-#include "Turbine.h" 
+#include "Turbine.h"
+#include <Servo.h> 
 #include <math.h>
 
 /*!
   *  @brief  Instantiates a new Turbine class
   *  @param 
   */
-Turbine::Turbine(String zone, String id) {
-  serial_zone = zone;
-	serial_id = id;
+Turbine::Turbine(String zone, String id, int motor_pos) {
+  zone = zone;
+	id = id;
   currentstate = 0;
   motor_pos = motor_pos;
+  Servo myservo;  // create servo object to control a servo
+  myservo.attach(8);
 }
 
 /*!
@@ -46,4 +49,18 @@ void Turbine::update_state() {
     currentstate = futurestate;
   }
 	return;
+}
+
+/*!
+ *  @brief  rotate turbine
+ */
+void Turbine::rotate(int pos) {
+  int start = myservo.read();
+  int dest = (pos - motor_pos + 360) % 360 / 2;   // 2 è il rapporto tra palo e puleggia
+  for (int i = start; i != dest; i + 1 - 2 * (dest < start)) {    // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    myservo.write(i);              // tell servo to go to position in variable 'pos'
+    delay(20);                     // waits 20ms for the servo to reach the position
+  }
+  return;
 }

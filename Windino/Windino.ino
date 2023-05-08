@@ -3,10 +3,12 @@
 #include "Serial_Bridge.h"
 #include "Turbine.h"
 
-const String zone = "01";
-const String id = "001";
+//Pala 1: 01  001 90
+//Pala 2: 01  002 0
+
 Adafruit_INA219 ina219;
-Serial_Bridge bridge_connection(zone, id);
+Turbine turbine("01", "001", 90);
+Serial_Bridge bridge_connection(turbine);
 
 int readtimer, sendtimer = 0;
 float shuntvoltage = 0;
@@ -92,36 +94,6 @@ void loop() {
   else if((millis() / 1000) - sendtimer >= 20){
     send_packs();
   }
-
-// da qui si dovrebbe poter sostituire con update_state()
-if(Serial.available() > 0){
-    char val = Serial.read();
-
-    int futurestate;
-    if(currentstate == 0 && val == 'A') futurestate = 1;
-    if(currentstate == 1 && val == '0') {
-      futurestate = 0;    
-      //ruota verso vento
-    }
-    if(currentstate == 1 && val == '1') {
-      futurestate = 0;    
-      //ruota dir opposta al vento
-    }
-    if(currentstate == 0 && val == 'L') futurestate = 2;
-    if(currentstate == 2 && val == '0') {
-      futurestate = 0;    
-      //digitalWrite(13,LOW);
-    }
-    if(currentstate == 2 && val == '1') {
-      futurestate = 0;    
-      //digitalWrite(13,HIGH);
-    }
-    if(currentstate == 0 && val == 'D') futurestate = 3;
-    if(currentstate == 3) {
-      String direction = Serial.readString();
-      Serial.print(direction);     
-    }      
-    currentstate = futurestate;
-  }
-
+  
+  turbine.update_state();
 }

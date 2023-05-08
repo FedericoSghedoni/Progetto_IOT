@@ -2,6 +2,7 @@
 #define _LIB_SERIAL_BRIDGE_
 
 #include "Arduino.h"
+#include "Turbine.h" 
 
 #define SERIAL_SPEED 9600
 #define SOL '\xff'
@@ -12,14 +13,14 @@
  */
 class Serial_Bridge {
 public:
-	Serial_Bridge(String zone, String id);
+	Serial_Bridge(Turbine turbine);
 	//~Serial_Bridge();
 	bool begin();
 	void print_pack(float value, String label);
 
 private:
   String serial_zone;
-	String serial_id;
+  String serial_id;
 };
 
 #endif
