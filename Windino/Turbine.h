@@ -1,25 +1,22 @@
-#ifndef _LIB_SERIAL_BRIDGE_
-#define _LIB_SERIAL_BRIDGE_
+#ifndef _LIB_TURBINE_
+#define _LIB_TURBINE_
 
 #include "Arduino.h"
 
-#define SERIAL_SPEED 9600
-#define SOL '\xff'
-#define EOL '\xfe'
-
 /*!
- *   @brief  Class that stores state and functions for interacting with bridge
+ *   @brief  Class that stores state and functions for interacting with turbine
  */
-class Serial_Bridge {
+class Turbine {
 public:
-	Serial_Bridge(String zone, String id);
-	//~Serial_Bridge();
-	bool begin();
-	void print_pack(float value, String label);
+	Turbine(String zone, String id);
+	//~Turbine();
+	void update_state();
 
 private:
   String serial_zone;
 	String serial_id;
+  int currentstate;
+  int motor_pos;
 };
 
 #endif

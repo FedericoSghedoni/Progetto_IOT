@@ -8,42 +8,42 @@
 Turbine::Turbine(String zone, String id) {
   serial_zone = zone;
 	serial_id = id;
+  currentstate = 0;
+  motor_pos = motor_pos;
 }
 
 /*!
- *  @brief  Sets up the connection to the bridge
- *  @return true: success false: Failed to start 
+ *  @brief  update turbine state
  */
-bool Turbine::begin() {
-	while (1) {
-		if (Serial.available() > 0) {
-      char msg = Serial.read();
-			if (msg == SOL) {
-				Serial.print(EOL); //connessione al bridge
-        int zone_len = serial_zone.length();
-        Serial.print(zone_len);
-        Serial.print(serial_zone);
-        Serial.print(serial_id);
-				return true;
-			}
-			else
-				return false;
-		}
-	}
-}
+void Turbine::update_state() {
+  if(Serial.available() > 0){
+    char val = Serial.read();
 
-/*!
- *  @brief  send data package
- */
-void Serial_Bridge::print_pack(float value, String label) {
-	int val = value * 100;
-	int pack_size = int(log10(val)) + 1;
-	//String topic = serial_zone + "/" + serial_id + "/" + label;   //add id to label
-
-	Serial.print(SOL);
-	Serial.print(pack_size);
-	Serial.print(val);
-	Serial.print(label);
-	Serial.print(EOL);
+    int futurestate;
+    if(currentstate == 0 && val == 'A') futurestate = 1;
+    if(currentstate == 1 && val == '0') {
+      futurestate = 0;    
+      //ruota verso vento
+    }
+    if(currentstate == 1 && val == '1') {
+      futurestate = 0;    
+      //ruota dir opposta al vento
+    }
+    if(currentstate == 0 && val == 'L') futurestate = 2;
+    if(currentstate == 2 && val == '0') {
+      futurestate = 0;    
+      //digitalWrite(13,LOW);
+    }
+    if(currentstate == 2 && val == '1') {
+      futurestate = 0;    
+      //digitalWrite(13,HIGH);
+    }
+    if(currentstate == 0 && val == 'D') futurestate = 3;
+    if(currentstate == 3) {
+      String direction = Serial.readString();
+      Serial.print(direction);     
+    }      
+    currentstate = futurestate;
+  }
 	return;
 }

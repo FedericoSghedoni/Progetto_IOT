@@ -93,7 +93,7 @@ void loop() {
     send_packs();
   }
 
-
+// da qui si dovrebbe poter sostituire con update_state()
 if(Serial.available() > 0){
     char val = Serial.read();
 
