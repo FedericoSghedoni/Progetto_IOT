@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include "Serial_Bridge.h"
+#include "Turbine.h"
 
 const String zone = "01";
 const String id = "001";
