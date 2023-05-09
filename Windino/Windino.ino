@@ -3,11 +3,11 @@
 #include "Serial_Bridge.h"
 #include "Turbine.h"
 
-//Pala 1: 01  001 90
-//Pala 2: 01  002 0
+//Pala 1: 01  001 0
+//Pala 2: 01  002 180
 
 Adafruit_INA219 ina219;
-Turbine turbine("01", "001", 90);
+Turbine turbine("01", "001", 0);
 Serial_Bridge bridge_connection(turbine);
 
 int readtimer, sendtimer = 0;
@@ -61,6 +61,8 @@ void setup() {
     } 
 
   ina219.setCalibration_16V_400mA();
+
+  turbine.myservo.attach(8);
   
   readtimer = millis() / 1000;
   sendtimer = millis() / 1000;

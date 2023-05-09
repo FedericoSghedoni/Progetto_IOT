@@ -50,7 +50,7 @@ class Bridge():
 	def setupMQTT(self):
 		self.clientMQTT = mqtt.Client("Bridge" + self.zona + "_" + self.id)
 		self.clientMQTT.on_connect = self.on_connect
-		#self.clientMQTT.on_message = self.on_message
+		self.clientMQTT.on_message = self.on_message
 		self.clientMQTT.on_log = self.on_log
 		broker = 'localhost'
 		port = 1883
@@ -148,7 +148,7 @@ class Bridge():
 				self.buffer.append(lastchar)
 
 	def useData(self):
-		#print(self.buffer) #stampa DEBUG
+		print(self.buffer.decode()) #stampa DEBUG
 		# I have received a packet from the serial port. I can use it
 
 		if self.buffer[0] != b'\xff':

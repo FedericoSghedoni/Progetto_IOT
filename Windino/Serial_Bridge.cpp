@@ -7,8 +7,8 @@
   *  @param 
   */
 Serial_Bridge::Serial_Bridge(Turbine turbine) {
-  serial_zone = turbine.zone;
-	serial_id = turbine.id;
+  serial_zone = turbine.t_zone;
+	serial_id = turbine.t_id;
 }
 
 /*!

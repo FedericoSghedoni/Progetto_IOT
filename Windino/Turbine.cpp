@@ -7,12 +7,11 @@
   *  @param 
   */
 Turbine::Turbine(String zone, String id, int motor_pos) {
-  zone = zone;
-	id = id;
+  t_zone = zone;
+	t_id = id;
+  t_motor_pos = motor_pos;
   currentstate = 0;
-  motor_pos = motor_pos;
   Servo myservo;  // create servo object to control a servo
-  myservo.attach(8);
 }
 
 /*!
@@ -56,7 +55,7 @@ void Turbine::update_state() {
  */
 void Turbine::rotate(int pos) {
   int start = myservo.read();
-  int dest = (pos - motor_pos + 360) % 360 / 2;   // 2 è il rapporto tra palo e puleggia
+  int dest = (pos - t_motor_pos + 360) % 360 / 2;   // 2 è il rapporto tra palo e puleggia
   for (int i = start; i != dest; i + 1 - 2 * (dest < start)) {    // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     myservo.write(i);              // tell servo to go to position in variable 'pos'

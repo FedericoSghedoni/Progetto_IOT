@@ -11,15 +11,15 @@ class Turbine {
 public:
 	Turbine(String zone, String id, int motor_pos);
 	//~Turbine();
-  String zone;
-  String id;
+  String t_zone;
+  String t_id;
   Servo myservo;
 	void update_state();
   void rotate(int pos);
 
 private:
+  int t_motor_pos;
   int currentstate;
-  int motor_pos;
 };
 
 #endif
