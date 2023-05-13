@@ -17,7 +17,7 @@ def check_connection(client, userdata, flags, rc):
 
 
 class DirectionThread(Thread):
-	def __init__(self, zones, zone_turbine):
+	def __init__(self, zones, zone_turbine, fake_dir = False):
 		super(DirectionThread, self).__init__()
 		self.zones = zones
 		self.zone_turbine = zone_turbine
@@ -26,6 +26,7 @@ class DirectionThread(Thread):
 		self.client.on_connect = check_connection
 		self.client.connect(broker, port)
 		self.client.loop_start()
+		self.fake_dir = fake_dir
 
 		# initialize direction values
 		for zone_name in self.zones:
@@ -49,6 +50,9 @@ class DirectionThread(Thread):
 			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
+
+			if self.fake_dir:
+				direction = (direction + 15) % 356
 
 			if 5 < abs(self.direction[zone_name] - direction) < 355:
 				print(f"Change direction of zone {zone_name} from {self.direction[zone_name]} to {direction}")
