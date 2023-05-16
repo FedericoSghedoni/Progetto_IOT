@@ -17,7 +17,7 @@ def check_connection(client, userdata, flags, rc):
 
 
 class DirectionThread(Thread):
-	def __init__(self, zones, zone_turbine, fake_dir = False):
+	def __init__(self, zones, zone_turbine, fake_dir = None):
 		super(DirectionThread, self).__init__()
 		self.zones = zones
 		self.zone_turbine = zone_turbine
@@ -33,11 +33,13 @@ class DirectionThread(Thread):
 			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
+			if fake_dir is not None:
+				direction = fake_dir
 			self.direction[zone_name] = direction
 
 			for turb in self.zone_turbine[zone_name]:
 				self.client.publish(f"{zone_name}/{turb}/direction", str(self.direction[zone_name]).zfill(3))
-				print(f"Pubblicata {zone_name}/{turb}/direction")
+				print(f"Pubblicata {zone_name}/{turb}/direction con valore " + str(direction))
 
 		schedule.every(10).minutes.do(self.update)
 
@@ -51,8 +53,8 @@ class DirectionThread(Thread):
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 
-			if self.fake_dir:
-				direction = (direction + 15) % 356
+			if self.fake_dir is not None:
+				direction = self.fake_dir
 
 			if 5 < abs(self.direction[zone_name] - direction) < 355:
 				print(f"Change direction of zone {zone_name} from {self.direction[zone_name]} to {direction}")

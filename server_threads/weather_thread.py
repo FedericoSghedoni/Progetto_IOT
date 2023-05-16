@@ -34,7 +34,7 @@ def download():
 
 	future_meteo = meteo_json["forecast"]["forecastday"][1]["hour"][current_hour]
 	temperature = float(future_meteo["temp_c"])
-	pressure = float(future_meteo ["pressure_mb"]) * 0.0009869  # convert to atm
+	pressure = float(future_meteo["pressure_mb"]) * 0.0009869  # convert to atm
 	speed = float(future_meteo["wind_mph"]) * 0.44704  # m/s
 	direction = float(future_meteo["wind_degree"])  # deg
 	dt = future_meteo["time"]
@@ -61,8 +61,8 @@ def download():
 	power = predict(lstm_in)
 
 	# complete database values and insert them
+	db_in.append(power[0][0])
 	db_in.append(description)
-	db_in.append(power)
 	insert_meteo(db_in)
 	print("finish download")
 
@@ -72,7 +72,7 @@ class WeatherThread(Thread):
 		super(WeatherThread, self).__init__()
 		self.download = download
 
-		schedule.every().hour.at(":00").do(self.download)
+		schedule.every().hour.at(":18").do(self.download)
 
 	def run(self):
 		while True:

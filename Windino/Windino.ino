@@ -7,7 +7,7 @@
 //Pala 2: 01  002 180
 
 Adafruit_INA219 ina219;
-Turbine turbine("01", "001", 0);
+Turbine turbine("01", "001", 180);
 Serial_Bridge bridge_connection(turbine);
 
 int readtimer, sendtimer = 0;

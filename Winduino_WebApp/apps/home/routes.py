@@ -26,11 +26,11 @@ def pale():
 
     return render_template('home/pale.html', arduino_recent_data=arduino_recent_data, arduino_all_data=arduino_all_data)
 
-@blueprint.route('/tables') 
+@blueprint.route('/tables')
 def tables():
     with get_db() as conn:
         arduino = conn.execute('SELECT * FROM arduino').fetchall()
-        #power = conn.execute('SELECT * FROM TurbineDataset').fetchall() 
+        #power = conn.execute('SELECT * FROM TurbineDataset').fetchall()
         meteo=conn.execute('SELECT * FROM meteo').fetchall()
 
     return render_template('home/tables.html', pale=pale, arduino=arduino,meteo=meteo)
@@ -49,19 +49,17 @@ def index():
 
         arduino = conn.execute('SELECT * FROM arduino').fetchall()
 
-        arduino_recent_data = conn.execute('SELECT * '
-                       'FROM arduino a '
-                       'WHERE (zone, id, date, hour) IN ('
-                           'SELECT zone, id, MAX(date), MAX(hour) '
+        arduino_recent_data = conn.execute(
+                           'SELECT zone, id,  MAX(date)as date , MAX(hour) as hour, speed, power, current, error '
                            'FROM arduino '
-                           'GROUP BY zone, id)').fetchall()
+                           'GROUP BY zone, id').fetchall()
 
         #power = conn.execute('SELECT * FROM TurbineDataset').fetchall() #togli
-        meteo=conn.execute('SELECT * FROM meteo').fetchall()
+        meteo = conn.execute('SELECT * FROM meteo').fetchall()
 
-    return render_template('home/index.html', segment='index', arduino=arduino, hours=hours, speeds=speeds, 
+    return render_template('home/index.html', segment='index', arduino=arduino, hours=hours, speeds=speeds,
                            arduino_recent_data=arduino_recent_data, meteo=meteo)
-    
+
 
 @blueprint.route('/<template>')
 def route_template(template):

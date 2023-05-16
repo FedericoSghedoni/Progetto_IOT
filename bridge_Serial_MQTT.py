@@ -2,6 +2,7 @@ import serial
 import serial.tools.list_ports
 import paho.mqtt.client as mqtt
 import time
+import sys
 
 class Bridge():
 
@@ -51,7 +52,7 @@ class Bridge():
 		self.clientMQTT = mqtt.Client("Bridge" + self.zona + "_" + self.id)
 		self.clientMQTT.on_connect = self.on_connect
 		self.clientMQTT.on_message = self.on_message
-		self.clientMQTT.on_log = self.on_log
+		#self.clientMQTT.on_log = self.on_log
 		broker = 'localhost'
 		port = 1883
 		self.clientMQTT.connect(broker, port)
@@ -74,6 +75,7 @@ class Bridge():
 		print("Received " + msg.topic + " " + str(msg.payload))  # stampa DEBUG
 		if msg.topic == self.zona + '/' + self.id + '/' + "R_value_":
 			dati = list(self.datiZona.values())
+			#print("Pala " + str(self.id) + " len=" + str(len(dati)))
 			if len(dati) != 0:
 				media = sum(dati) / len(dati)
 				futureState = None
@@ -86,6 +88,7 @@ class Bridge():
 					elif value < media-15 or value < 0:  # controllo errori
 						futureState = 2
 					else:
+						futureState = 0
 						self.ser.write(b'L0')  # Spegni Led Malfunzionamento
 						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 0)
      
@@ -115,20 +118,23 @@ class Bridge():
 						futureState = 0
 
 				self.currentState = futureState
+			#print("Current state " + str(self.currentState) + ", pala id " + str(self.id))
 
 		elif msg.topic == self.zona + '/' + self.id + '/' + "direction":
-			print("ciao")
+			print("Direction ricevuta da " + str(self.id))
 			self.ser.write(b'D')  # Ruota Pale verso vento
 			self.ser.write(msg.payload)
-			print(self.ser.readString())
+			print("dir=" + str(self.ser.read(3)))
 
 		elif 'R_value_' in msg.topic:
 			value = msg.payload.decode()
 			zona, id, name = msg.topic.split('/')
+			#print("Pala " + str(self.id) + "inserisce R_value di id " + str(id))
 			if self.id != id:
-				self.datiZona[id] = int(value)
+				self.datiZona[id] = float(value)
 		elif 'Error' in msg.topic:
-			if self.id != id:
+			zona, id, name = msg.topic.split('/')
+			if self.id != id and msg.payload.decode() == 1:
 				self.datiZona.pop(id)
 
 	def on_log(self, client, userdata, level, buf):
@@ -140,7 +146,7 @@ class Bridge():
 			# data available from the serial port
 			lastchar = self.ser.read(1)
 			if lastchar == b'\xfe':  # EOL
-				print("\nValue received")
+				#print("\nValue received")
 				self.useData()
 				self.buffer = []
 			else:
@@ -148,7 +154,10 @@ class Bridge():
 				self.buffer.append(lastchar)
 
 	def useData(self):
-		print(self.buffer.decode()) #stampa DEBUG
+		for i in range(1, len(self.buffer)):
+			sys.stdout.write(self.buffer[i].decode())
+			sys.stdout.flush()
+		sys.stdout.write('\n')
 		# I have received a packet from the serial port. I can use it
 
 		if self.buffer[0] != b'\xff':
@@ -156,6 +165,8 @@ class Bridge():
 			return False
 		numval = int(self.buffer[1].decode()) # legge size del pacchetto
 		val = ''
+		if numval == 2:
+			val = '0'
 		for i in range (numval):
 			if numval - i == 2:
 				val = val + '.'

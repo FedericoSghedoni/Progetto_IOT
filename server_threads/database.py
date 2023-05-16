@@ -37,7 +37,7 @@ def insert_arduino(zone, idpala, date, hour, d):
 		cursor = connection.cursor()
 
 		stringa = f"""INSERT INTO arduino 
-					VALUES ('{zone}', '{idpala}', '{date}', '{hour}', {d["speed"]}, {d["power"]}, {d["current"]}, '{d["error"]}' )"""
+					VALUES ('{zone}', '{idpala}', '{date}', '{hour}', {d["R_value_"]}, {d["mW_value_"]}, {d["mA_value_"]}, '{d["Error"]}' )"""
 		cursor.execute(stringa)
 
 
@@ -49,6 +49,7 @@ def insert_meteo(x):
 		cursor = connection.cursor()
 
 		stringa = f"REPLACE INTO meteo VALUES ('{x[0]}', '{x[1]}', {x[2]}, {x[3]}, {x[4]}, {x[5]}, {x[6]}, '{x[7]}')"
+		print(stringa)
 		cursor.execute(stringa)
 
 
@@ -76,10 +77,10 @@ if __name__ == '__main__':
 	#create_tables()
 
 	dic = {
-		"current": 200,
-		"power": 200,
-		"error": "no error",
-		"speed": 100
+		"mA_value_": 200,
+		"mW_value_": 200,
+		"Error": "no error",
+		"R_value_": 100
 	}
 	# Insert the dic values inside arduino table
 	insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)

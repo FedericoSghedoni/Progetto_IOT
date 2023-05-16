@@ -43,7 +43,9 @@ void Turbine::update_state() {
     if(currentstate == 0 && val == 'D') futurestate = 3;
     if(currentstate == 3) {
       String direction = Serial.readString();
-      Serial.print(direction);     
+      Serial.print(direction); 
+      rotate(direction.toInt());
+      futurestate = 0;    
     }      
     currentstate = futurestate;
   }
@@ -56,7 +58,7 @@ void Turbine::update_state() {
 void Turbine::rotate(int pos) {
   int start = myservo.read();
   int dest = (pos - t_motor_pos + 360) % 360 / 2;   // 2 è il rapporto tra palo e puleggia
-  for (int i = start; i != dest; i + 1 - 2 * (dest < start)) {    // goes from 0 degrees to 180 degrees
+  for (int i = start; i != dest; i += 1 - 2 * (dest < start)) {    // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     myservo.write(i);              // tell servo to go to position in variable 'pos'
     delay(20);                     // waits 20ms for the servo to reach the position
