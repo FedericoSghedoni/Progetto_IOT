@@ -9,91 +9,137 @@
 
   <div class="content">
     <div class="row">
-      <div class="col-md-12">
-        <div class="card " >
+      
+      <div class="card">
+        
           <div class="card-header">
-            <h4 class="card-title"> Dati raccolti da Arduino</h4>
+              <div class="row">
+
+                  <div class="col-sm-6 text-left">
+                    <h5 class="card-category"></h5>
+                    <h2 class="card-title" id="card-title">Dati raccolti da Arduino</h2>
+                  </div>
+
+                
+                  <div class="col-sm-6">
+                      <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                          <label class="btn btn-sm btn-primary btn-simple active" id="arduino-btn">
+                            <input type="radio" name="options" checked />
+                              <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">ARDUINO</span>
+                                <span class="d-block d-sm-none"><i class="tim-icons icon-single-02"></i>
+                                </span>
+                            </label>
+
+                            <label class="btn btn-sm btn-primary btn-simple" id="meteo-btn">
+                              <input type="radio" class="d-none d-sm-none" name="options" />
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">METEO</span>
+                                  <span class="d-block d-sm-none">
+                                    <i class="tim-icons icon-gift-2"></i>
+                                  </span>
+                            </label>               
+
+                        </div>
+                    
+                    </div>
+              </div>
           </div>
-          <div class="card-body">
-            <table class="table tablesorter" id="">
-              <thead class="text-primary">
-                <tr>
-                  <th class="text-center">zone</th>
-                  <th class="text-center">id_pala</th>
-                  <th class="text-center">date</th>
-                  <th class="text-center">hour</th>
-                  <th class="text-center">speed</th>
-                  <th class="text-center">power</th>
-                  <th class="text-center">current</th>
-                  <th class="text-center">error</th>
-              </tr>
-              </thead>
-              <tbody>
-                {% for pala in arduino %}
-              
-                    <tr>
-                        <td class="text-center">{{pala.zone}}</td>
-                        <td class="text-center">{{ pala.id }}</td>
-                        <td class="text-center">{{ pala.date }}</td>
-                        <td class="text-center">{{ pala.hour }}</td>
-                        <td class="text-center">{{ pala.speed }}</td>
-                        <td class="text-center">{{ pala.power }}</td>
-                        <td class="text-center">{{ pala.current }}</td>
-                        <td class="text-center">{{ pala.error }}</td>
-                    </tr>
-          
-            {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            
+                <div class="card-body">
+                  <div class="table">
+                      <table class="table-responsive mx-auto" id="arduino-content" style="display: block;">
+                        <thead class="text-primary">
+                          <tr>
+                              <th class="text-center">zone</th>
+                              <th class="text-center">id_pala</th>
+                              <th class="text-center">date</th>
+                              <th class="text-center">hour</th>
+                              <th class="text-center">speed</th>
+                              <th class="text-center">power</th>
+                              <th class="text-center">current</th>
+                              <th class="text-center">error</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for pala in turbine_data %}
+                        
+                              <tr>
+                                  <td class="text-center">{{pala.zone}}</td>
+                                  <td class="text-center">{{ pala.id }}</td>
+                                  <td class="text-center">{{ pala.date }}</td>
+                                  <td class="text-center">{{ pala.hour }}</td>
+                                  <td class="text-center">{{ pala.speed }}</td>
+                                  <td class="text-center">{{ pala.power }}</td>
+                                  <td class="text-center">{{ pala.current }}</td>
+                                  <td class="text-center">{{ pala.error }}</td>
+                              </tr>
+                        
+                      {% endfor %}
+                      
+                        </tbody>
+                      </table>
+                    </div>
+
+
+                    <div class="table">
+                      <table class="table-responsive mx-auto" id="meteo-content" style="display: none;">
+                        <!-- tabella per location3 -->
+                        <thead class="text-primary">
+                          <tr>
+                            <th class="text-center">Date</th>
+                            <th class="text-center">Hour</th>
+                            <th class="text-center">Temperature</th>
+                            <th class="text-center">Speed</th>
+                            <th class="text-center">Direction</th>
+                            <th class="text-center">Pressure</th>
+                            <th class="text-center">Power</th>
+                            <th class="text-center">Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                          {% for meteo in meteo[-25:] %}
+                        
+                              <tr>
+                                  <td class="text-center">{{ meteo[0] }}</td>
+                                  <td class="text-center">{{ meteo[1] }}</td>
+                                  <td class="text-center">{{ meteo[2] }}</td>
+                                  <td class="text-center">{{ meteo[3] }}</td>
+                                  <td class="text-center">{{ meteo[4] }}</td>
+                                  <td class="text-center">{{ meteo[5] }}</td>
+                                  <td class="text-center">{{ meteo[6] }}</td>
+                                  <td class="text-center">{{ meteo[7] }}</td>
+                              </tr>
+                    
+                      {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                </div>
+    
       </div>
 
-      
-      
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div class="card " >
-              <div class="card-header">
-                <h4 class="card-title"> Dati meteo</h4>
-              </div>
-              <div class="card-body">
-                <table class="table tablesorter" id="">
-                  <thead class="text-primary">
-                    <tr>
-                      <th class="text-center">Date</th>
-                      <th class="text-center">Hour</th>
-                      <th class="text-center">Temperature</th>
-                      <th class="text-center">Speed</th>
-                      <th class="text-center">Direction</th>
-                      <th class="text-center">Pressure</th>
-                      <th class="text-center">Power</th>
-                      <th class="text-center">Description</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                    {% for meteo in meteo[-25:] %}
-                  
-                        <tr>
-                            <td class="text-center">{{ meteo[0] }}</td>
-                            <td class="text-center">{{ meteo[1] }}</td>
-                            <td class="text-center">{{ meteo[2] }}</td>
-                            <td class="text-center">{{ meteo[3] }}</td>
-                            <td class="text-center">{{ meteo[4] }}</td>
-                            <td class="text-center">{{ meteo[5] }}</td>
-                            <td class="text-center">{{ meteo[6] }}</td>
-                            <td class="text-center">{{ meteo[7] }}</td>
-                        </tr>
-              
-                {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-    </div>
-  </div>
+        <script>
+          // Gestisci i clic sui bottoni
+          var arduinoBtn = document.getElementById('arduino-btn');
+          var meteoBtn = document.getElementById('meteo-btn');
+
+          arduinoBtn.addEventListener('click', function() {
+            // visualizza il contenuto per ARDUINO
+            document.getElementById('arduino-content').style.display = 'block';
+            document.getElementById('meteo-content').style.display = 'none';
+            document.getElementById('card-title').textContent = 'Dati raccolti da Arduino';
+          });
+
+          meteoBtn.addEventListener('click', function() {
+            // visualizza il contenuto per METEO
+            document.getElementById('arduino-content').style.display = 'none';
+            document.getElementById('meteo-content').style.display = 'block';
+            document.getElementById('card-title').textContent = 'Dati meteo';
+          });
+        </script>
+
+</div>
+
+</div>
 </div>
 
 {% endblock content %}
