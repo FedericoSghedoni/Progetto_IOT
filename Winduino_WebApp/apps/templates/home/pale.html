@@ -45,7 +45,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                              {% for pala in arduino_all_data %}
+                              {% for pala in turbine_data %}
                               {% if pala.zone == "01" %}
                                   <tr>
                                       <td class="text-center">{{pala.zone}}</td>
@@ -152,7 +152,7 @@
                           </tr>
                           </thead>
                           <tbody>
-                            {% for pala in arduino_all_data %}
+                            {% for pala in turbine_data %}
                             {% if pala.zone == "zona 2" %}
                                 <tr>
                                     <td class="text-center">{{pala.zone}}</td>
@@ -259,7 +259,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                              {% for pala in arduino_all_data %}
+                              {% for pala in turbine_data %}
                               {% if pala.zone == "zona 3" %}
                                   <tr>
                                       <td class="text-center">{{pala.zone}}</td>
