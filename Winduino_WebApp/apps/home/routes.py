@@ -16,6 +16,21 @@ def get_db():
 def pale():
     with get_db() as conn:
         arduino_all_data = conn.execute('SELECT * FROM arduino').fetchall()
+        
+        turbine_data= conn.execute(
+                        "SELECT subquery3.zone, subquery3.id, subquery3.date, subquery3.hour, subquery3.speed, subquery3.power, subquery3.current, subquery3.error "
+                        "FROM ( "
+                        "    SELECT subquery2.*, ROW_NUMBER() OVER (PARTITION BY subquery2.zone, subquery2.id ORDER BY subquery2.date DESC, subquery2.hour DESC) AS rn "
+                        "    FROM ( "
+                        "        SELECT t.* "
+                        "        FROM arduino t "
+                        "        ORDER BY t.zone, t.id, t.date DESC, t.hour DESC "
+                        "    ) subquery2 "
+                        ") subquery3 "
+                        "WHERE subquery3.rn <= 3 "
+                        "GROUP BY subquery3.zone, subquery3.id, subquery3.date, subquery3.hour, subquery3.speed, subquery3.power, subquery3.current, subquery3.error"
+                    ).fetchall()
+
 
         arduino_recent_data = conn.execute('SELECT * '
                        'FROM arduino a '
@@ -24,16 +39,29 @@ def pale():
                            'FROM arduino '
                            'GROUP BY zone, id)').fetchall()
 
-    return render_template('home/pale.html', arduino_recent_data=arduino_recent_data, arduino_all_data=arduino_all_data)
+    return render_template('home/pale.html', arduino_recent_data=arduino_recent_data, arduino_all_data=arduino_all_data, turbine_data=turbine_data)
 
-@blueprint.route('/tables')
+@blueprint.route('/tables') 
 def tables():
     with get_db() as conn:
         arduino = conn.execute('SELECT * FROM arduino').fetchall()
-        #power = conn.execute('SELECT * FROM TurbineDataset').fetchall()
+        turbine_data= conn.execute(
+                        "SELECT subquery3.zone, subquery3.id, subquery3.date, subquery3.hour, subquery3.speed, subquery3.power, subquery3.current, subquery3.error "
+                        "FROM ( "
+                        "    SELECT subquery2.*, ROW_NUMBER() OVER (PARTITION BY subquery2.zone, subquery2.id ORDER BY subquery2.date DESC, subquery2.hour DESC) AS rn "
+                        "    FROM ( "
+                        "        SELECT t.* "
+                        "        FROM arduino t "
+                        "        ORDER BY t.zone, t.id, t.date DESC, t.hour DESC "
+                        "    ) subquery2 "
+                        ") subquery3 "
+                        "WHERE subquery3.rn <= 3 "
+                        "GROUP BY subquery3.zone, subquery3.id, subquery3.date, subquery3.hour, subquery3.speed, subquery3.power, subquery3.current, subquery3.error"
+                    ).fetchall()
+        #power = conn.execute('SELECT * FROM TurbineDataset').fetchall() 
         meteo=conn.execute('SELECT * FROM meteo').fetchall()
 
-    return render_template('home/tables.html', pale=pale, arduino=arduino,meteo=meteo)
+    return render_template('home/tables.html', pale=pale, arduino=arduino,meteo=meteo, turbine_data=turbine_data)
 
 @blueprint.route('/index')
 def index():
@@ -49,17 +77,18 @@ def index():
 
         arduino = conn.execute('SELECT * FROM arduino').fetchall()
 
-        arduino_recent_data = conn.execute(
-                           'SELECT zone, id,  MAX(date)as date , MAX(hour) as hour, speed, power, current, error '
-                           'FROM arduino '
-                           'GROUP BY zone, id').fetchall()
+        arduino_recent_data = conn.execute("SELECT a.* "
+                       "FROM arduino a "
+                       "JOIN (SELECT zone, id, MAX(date || ' ' || hour) AS max_datetime "
+                       "FROM arduino "
+                       "GROUP BY zone, id) a2 ON a.zone = a2.zone AND a.id = a2.id AND (a.date || ' ' || a.hour) = a2.max_datetime").fetchall()
 
         #power = conn.execute('SELECT * FROM TurbineDataset').fetchall() #togli
-        meteo = conn.execute('SELECT * FROM meteo').fetchall()
+        meteo=conn.execute('SELECT * FROM meteo').fetchall()
 
-    return render_template('home/index.html', segment='index', arduino=arduino, hours=hours, speeds=speeds,
+    return render_template('home/index.html', segment='index', arduino=arduino, hours=hours, speeds=speeds, 
                            arduino_recent_data=arduino_recent_data, meteo=meteo)
-
+    
 
 @blueprint.route('/<template>')
 def route_template(template):
