@@ -38,7 +38,18 @@ def on_message(client, userdata, msg):
 	key = topic[0] + "/" + topic[1]
 
 	if topic[2] == 'mW_value_':
-		power_register += float(msg.payload.decode())
+		power_register += (float(msg.payload.decode()) * 100)
+		turbine_register[key][topic[2]] = float(msg.payload.decode()) * 100
+	elif topic[2] == 'Error':
+		if int(msg.payload.decode()) == 1:
+			turbine_register[key][topic[2]] = 'Error'
+		else:
+			turbine_register[key][topic[2]] = 'OK'
+	elif topic[2] == 'R_value_':
+		turbine_register[key][topic[2]] = float(msg.payload.decode()) / 10
+	else:  # mA_value_
+		turbine_register[key][topic[2]] = float(msg.payload.decode()) * 2
+
 
 	turbine_register[key][topic[2]] = msg.payload.decode()
 	if len(turbine_register[key]) == 4:
