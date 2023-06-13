@@ -18,10 +18,6 @@ if __name__ == '__main__':
             "turbines": ["003"],
         }
     }
-    zone_turbine = {
-        "01": ["001", "002"],
-        "02": ["003"]
-    }
 
     # start Direction Thread (modify turbines direction accordingly with the wind)
     # inserire fake_dir = True per usare direzioni fittizie
@@ -29,7 +25,7 @@ if __name__ == '__main__':
     direction_t.start()
 
     # start arduino thread (receive turbines info)
-    arduino_t = ArduinoThread(zone_turbine)
+    arduino_t = ArduinoThread(zt_dic)
     arduino_t.start()
 
     weather_t.join()
