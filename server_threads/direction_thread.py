@@ -1,15 +1,20 @@
+"""
+The Direction Thread uses meteo information to change the direction of the turbines.
+The wind direction is downloaded every 10 minutes and it is sent to the turbines (via MQTT)
+only if the difference with the current direction is higher than a threshold.
+"""
 from threading import *
 import schedule
 import requests
 from paho.mqtt import client as mqtt_client
 
-url = "http://api.weatherapi.com/v1/current.json?key=00590921f850414bb73194114232303&q="
+url = "https://api.weatherapi.com/v1/current.json?key=00590921f850414bb73194114232303&q="
 
 broker = 'localhost'
 port = 1883
 
 
-def check_connection(client, userdata, flags, rc):
+def on_connection(client, userdata, flags, rc):
 	if rc == 0:
 		print("DirectionThread MQTT Client connected")
 	else:
@@ -17,29 +22,29 @@ def check_connection(client, userdata, flags, rc):
 
 
 class DirectionThread(Thread):
-	def __init__(self, zones, zone_turbine, fake_dir = None):
+	def __init__(self, data, fake_dir = None):
 		super(DirectionThread, self).__init__()
-		self.zones = zones
-		self.zone_turbine = zone_turbine
-		self.direction = {}
+		self.data = data
+		self.zones = [zone for zone in self.data]
+		self.directions = {}
 		self.client = mqtt_client.Client("wind_thread")
-		self.client.on_connect = check_connection
+		self.client.on_connect = on_connection
 		self.client.connect(broker, port)
 		self.client.loop_start()
 		self.fake_dir = fake_dir
 
-		# initialize direction values
-		for zone_name in self.zones:
-			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
+		# Initialization of direction values
+		for zone in self.data:
+			complete_url = url + str(self.data[zone]["coords"][0]) + "," + str(self.data[zone]["coords"][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 			if fake_dir is not None:
 				direction = fake_dir
-			self.direction[zone_name] = direction
+			self.directions[zone] = direction
 
-			for turb in self.zone_turbine[zone_name]:
-				self.client.publish(f"{zone_name}/{turb}/direction", str(self.direction[zone_name]).zfill(3))
-				print(f"Pubblicata {zone_name}/{turb}/direction con valore " + str(direction))
+			for turbine in self.data[zone]["turbines"]:
+				self.client.publish(f"{zone}/{turbine}/direction", str(self.directions[zone]).zfill(3))
+				#print(f"Published direction {direction} on turbine {zone}/{turbine}")
 
 		schedule.every(10).minutes.do(self.update)
 
@@ -48,28 +53,34 @@ class DirectionThread(Thread):
 			schedule.run_pending()
 
 	def update(self):
-		for zone_name in self.zones:
-			complete_url = url + str(self.zones[zone_name][0]) + "," + str(self.zones[zone_name][1])
+		for zone in self.zones:
+			complete_url = url + str(self.data[zone]["coords"][0]) + "," + str(self.data[zone]["coords"][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
 
 			if self.fake_dir is not None:
 				direction = self.fake_dir
 
-			if 5 < abs(self.direction[zone_name] - direction) < 355:
-				print(f"Change direction of zone {zone_name} from {self.direction[zone_name]} to {direction}")
-				self.direction[zone_name] = direction
+			if 5 < abs(self.directions[zone] - direction) < 355:
+				print(f"Change direction of zone {zone} from {self.directions[zone]} to {direction}")
+				self.directions[zone] = direction
 				direction = str(direction).zfill(3)
 
-				#self.client.connect(broker, port)
-				for turb in self.zone_turbine[zone_name]:
-					self.client.publish(f"{zone_name}/{turb}/direction", direction)
-					print(f"Pubblicata {zone_name}/{turb}/direction")
+				for turbine in self.data[zone]["turbines"]:
+					self.client.publish(f"{zone}/{turbine}/direction", direction)
+					#print(f"Published direction {direction} on turbine {zone}/{turbine}")
 
 
 if __name__ == "__main__":
-	zone_dic = {
-		"01": (44.5, 10.9)
+	zt_dic = {
+		"01": {
+			"coords": (44.5, 10.9),
+			"turbines": ["001", "002"],
+		},
+		"02": {
+			"coords": (44.5, 10.9),
+			"turbines": ["003"],
+		}
 	}
-	wind_t = DirectionThread(zone_dic)
-	wind_t.start()
+	direction_t = DirectionThread(zt_dic)
+	direction_t.start()

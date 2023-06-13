@@ -32,7 +32,6 @@ def update():
 
 def on_message(client, userdata, msg):
 	global power_register, turbine_register
-	# Dice cosa fare quando arriva un nuovo messaggio
 	print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 	topic = msg.topic.split("/")
 	key = topic[0] + "/" + topic[1]
@@ -50,7 +49,6 @@ def on_message(client, userdata, msg):
 	else:  # mA_value_
 		turbine_register[key][topic[2]] = float(msg.payload.decode()) * 2
 
-
 	turbine_register[key][topic[2]] = msg.payload.decode()
 	if len(turbine_register[key]) == 4:
 		insert_arduino(topic[0], topic[1], date.today(), datetime.now().strftime("%H:%M:%S"), turbine_register[key])
@@ -58,9 +56,9 @@ def on_message(client, userdata, msg):
 
 
 class ArduinoThread(Thread):
-	def __init__(self, zt_list):
+	def __init__(self, data):
 		super(ArduinoThread, self).__init__()
-		self.zt_list = zt_list
+		self.data = data
 		self.client = mqtt_client.Client("arduino_thread")
 		self.client.on_connect = on_connect
 		self.client.on_message = on_message
@@ -76,9 +74,9 @@ class ArduinoThread(Thread):
 		schedule.every().hour.at(":00").do(update)
 
 		# initialize register dictionary
-		for z in zt_list:
-			for t in zt_list[z]:
-				turbine_register[z + "/" + t] = {}
+		for zone in self.data:
+			for turbine in self.data[zone]["turbines"]:
+				turbine_register[zone + "/" + turbine] = {}
 
 	def run(self) -> None:
 		while True:
@@ -86,10 +84,16 @@ class ArduinoThread(Thread):
 
 
 if __name__ == "__main__":
-	zone_turbine = {
-		"01": ["001", "002"],
-		"02": ["003"]
+	zt_dic = {
+		"01": {
+			"coords": (44.5, 10.9),
+			"turbines": ["001", "002"],
+		},
+		"02": {
+			"coords": (44.5, 10.9),
+			"turbines": ["003"],
+		}
 	}
-	#arduino_t = ArduinoThread(zone_turbine)
+	#arduino_t = ArduinoThread(zt_dic)
 	#arduino_t.start()
 	update()
