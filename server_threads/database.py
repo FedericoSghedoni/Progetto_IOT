@@ -29,6 +29,7 @@ def create_tables():
 						PRIMARY KEY (date, hour))""")
 
 
+# Insert a new row in the 'arduino' table
 def insert_arduino(zone, idpala, date, hour, d):
 	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
@@ -41,6 +42,8 @@ def insert_arduino(zone, idpala, date, hour, d):
 		cursor.execute(stringa)
 
 
+# Insert a row in the 'meteo' table. The rows are have primary key date-time
+# so if the key is already present the row will be replaced.
 def insert_meteo(x):
 	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
@@ -49,10 +52,11 @@ def insert_meteo(x):
 		cursor = connection.cursor()
 
 		stringa = f"REPLACE INTO meteo VALUES ('{x[0]}', '{x[1]}', {x[2]}, {x[3]}, {x[4]}, {x[5]}, {x[6]}, '{x[7]}')"
-		print(stringa)
 		cursor.execute(stringa)
 
 
+# Return the 47 most recent entries of the 'meteo'. It's called by the Weather Thread when it does
+# the power prediction with the LSTM model.
 def get_recent_meteo(n=47):
 	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
@@ -63,6 +67,9 @@ def get_recent_meteo(n=47):
 	return result.fetchall()
 
 
+# Modify the power value of one entry of the 'meteo' table. The entry is identified
+# by date and time. The old power value was the prediction, the new power value is
+# the real power generated.
 def update_power(new_val, date, hour):
 	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
@@ -80,7 +87,7 @@ if __name__ == '__main__':
 		"mA_value_": 200,
 		"mW_value_": 200,
 		"Error": "no error",
-		"R_value_": 100
+		"R_value_": 10
 	}
 	# Insert the dic values inside arduino table
 	insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
@@ -92,6 +99,3 @@ if __name__ == '__main__':
 	# Insert the m values inside meteo table
 	#insert_meteo(m1)
 	#update_power(11.0, "2023-03-23", "12:00")
-
-	#rows = cursor.execute("SELECT name, species, tank_number FROM fish").fetchall()
-	#print(rows)
