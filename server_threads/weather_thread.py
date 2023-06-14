@@ -44,7 +44,7 @@ def download():
 	temperature = float(future_meteo["temp_c"])
 	pressure = float(future_meteo["pressure_mb"]) * 0.0009869  # convert to atm
 	speed = float(future_meteo["wind_mph"]) * 0.44704  # m/s
-	direction = float(future_meteo["wind_degree"])  # deg
+	direction = int(future_meteo["wind_degree"])  # deg
 	dt = future_meteo["time"]
 	month = int(dt.split('-')[1])
 	day = int(dt.split('-')[2].split(' ')[0])
@@ -67,6 +67,7 @@ def download():
 
 	# Predict power value
 	lstm_in = lstm_in.reshape(-1, 7)
+	lstm_in = np.flip(lstm_in, axis=0)
 	power = predict(lstm_in)
 
 	# Complete database values and insert them
@@ -91,8 +92,8 @@ class WeatherThread(Thread):
 
 
 if __name__ == "__main__":
-	download_all()
-	#download()
+	#download_all()
+	download()
 	#weather_t = WeatherThread()
 	#weather_t.start()
 	#weather_t.join()
