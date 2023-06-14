@@ -2,6 +2,7 @@
     Run the main only if you want to reatrain all the network.
     The training dataset is TurbineDataset.csv
 """
+import random
 
 from lstm_model import energyLSTM, SequenceDataset
 import numpy as np
@@ -31,17 +32,6 @@ def init_dataframe(dframe):
     df = df.drop('Time', axis=1)
     df.insert(1, 'Time', hour_col.astype(int))
 
-    # mantain only 3h values
-    hour_vals = [0, 3, 6, 9, 12, 15, 18, 21]
-
-    #for index in range(len(df)):
-    #    if index != 0 and (index % 3) == 0:
-    #        new_val = (df.iloc[index]['System power generated | (kW)'] + df.iloc[index - 1]['System power generated | (kW)'] + df.iloc[index - 2]['System power generated | (kW)']) / 3
-    #        df.iloc[index, -1] = new_val
-
-    #df = df[df['Time'].isin(hour_vals)]
-    #df = df.reset_index()
-
     # modify Date values
     month_col = []
     day_col = []
@@ -51,6 +41,18 @@ def init_dataframe(dframe):
     df = df.drop('Date', axis=1)
     df.insert(0, 'Day', day_col.astype(int))
     df.insert(0, 'Month', month_col.astype(int))
+
+    # Shift temperature values
+    df["Air temperature | ('C)"] = df["Air temperature | ('C)"] - (22.199766 - 13.8)
+    # Shift wind degree values
+    df['Wind direction | (deg)'] = (df['Wind direction | (deg)'] - (143.755 - 67.5)) % 360
+    # Shift wind velocity values
+    df['Wind speed | (m/s)'] = df['Wind speed | (m/s)'] - 6.127
+    for i in range(len(df['Wind speed | (m/s)'])):
+        if df['Wind speed | (m/s)'][i] < 0:
+            df['Wind speed | (m/s)'][i] = random.uniform(0, 0.1)
+    # Shift pressure values
+    df['Pressure | (atm)'] = df['Pressure | (atm)'] + 0.0088137
 
     # normalization
     ct = ColumnTransformer([
@@ -124,7 +126,7 @@ if __name__ == '__main__':
     sequence_length = 48
     batch_size = 10
     target = 'System power generated | (kW)'
-    learning_rate = 0.0005
+    learning_rate = 0.0003
     num_hidden_units = 3
     epoches = 50
 
