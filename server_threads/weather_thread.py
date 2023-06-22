@@ -9,6 +9,8 @@ from threading import *
 import time
 import schedule
 import requests
+import torch
+
 from lstm_model import predict
 from database import insert_meteo, get_recent_meteo
 import numpy as np
@@ -36,7 +38,7 @@ def download_all():
 
 # Download the meteo information for tomorrow at this hour and insert it in
 # the database table 'meteo'. Inserts in the database also the power prediction.
-def download():
+def download(checkpoint):
 	meteo_json = requests.get(url).json()
 	current_hour = int(meteo_json["location"]["localtime"].split(' ')[1].split(':')[0])
 
@@ -56,7 +58,6 @@ def download():
 	# Create the input for lstm model
 	lstm_in = np.array([month, day, current_hour, temperature, speed, direction, pressure])
 	met = get_recent_meteo()
-	print("dimension meteo: " + str(len(met)))
 	for i in met:
 		i = list(i)
 		d = i.pop(0)
@@ -69,7 +70,7 @@ def download():
 	# Predict power value
 	lstm_in = lstm_in.reshape(-1, 7)
 	lstm_in = np.flip(lstm_in, axis=0)
-	power = predict(lstm_in)
+	power = predict(lstm_in, checkpoint)
 
 	# Complete database values and insert them
 	db_in.append(power[0][0])
@@ -78,18 +79,26 @@ def download():
 	print("Meteo download completed")
 
 
+def calc_new_delay(delay: int) -> int:
+	"""Calc the dalay of timer based on what time is it"""
+	seconds_today = (time.localtime().tm_hour * 3600) + (time.localtime().tm_min * 60) + time.localtime().tm_sec
+	passed_from_last = seconds_today % delay
+	new_delay = delay - passed_from_last
+	return new_delay
+
+
 # Weather Thread implemetation: run function download one time each hour
 class WeatherThread(Thread):
-	def __init__(self):
+	def __init__(self, checkpoint):
 		super(WeatherThread, self).__init__()
 		self.download = download
+		self.checkpoint = checkpoint
 
-		schedule.every().hour.at(":00").do(self.download)
 
 	def run(self):
 		while True:
-			schedule.run_pending()
-			time.sleep(10)
+			time.sleep(calc_new_delay(3600))
+			self.download(self.checkpoint)
 
 
 if __name__ == "__main__":
