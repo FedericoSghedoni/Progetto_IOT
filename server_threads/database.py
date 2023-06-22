@@ -59,6 +59,7 @@ def insert_meteo(x):
 # the power prediction with the LSTM model.
 def get_recent_meteo(n=47):
 	path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+	#path = r"C:\Users\Serena\Documents\Università\4°-5° anno (21-22, 22-23)\IOT and 3D intelligent systems\IOT_project\Progetto_IOT"
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
 
 	cursor = connection.cursor()
