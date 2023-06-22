@@ -22,7 +22,7 @@ def on_connection(client, userdata, flags, rc):
 
 
 class DirectionThread(Thread):
-	def __init__(self, data, fake_dir = None):
+	def __init__(self, data):
 		super(DirectionThread, self).__init__()
 		self.data = data
 		self.zones = [zone for zone in self.data]
@@ -31,15 +31,12 @@ class DirectionThread(Thread):
 		self.client.on_connect = on_connection
 		self.client.connect(broker, port)
 		self.client.loop_start()
-		self.fake_dir = fake_dir
 
 		# Initialization of direction values
 		for zone in self.data:
 			complete_url = url + str(self.data[zone]["coords"][0]) + "," + str(self.data[zone]["coords"][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
-			if fake_dir is not None:
-				direction = fake_dir
 			self.directions[zone] = direction
 
 			for turbine in self.data[zone]["turbines"]:
@@ -57,9 +54,6 @@ class DirectionThread(Thread):
 			complete_url = url + str(self.data[zone]["coords"][0]) + "," + str(self.data[zone]["coords"][1])
 			meteo_json = requests.get(complete_url).json()
 			direction = int(meteo_json["current"]["wind_degree"])  # deg
-
-			if self.fake_dir is not None:
-				direction = self.fake_dir
 
 			if 5 < abs(self.directions[zone] - direction) < 355:
 				print(f"Change direction of zone {zone} from {self.directions[zone]} to {direction}")

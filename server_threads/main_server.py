@@ -1,6 +1,7 @@
 from weather_thread import WeatherThread
 from direction_thread import DirectionThread
 from arduino_thread import ArduinoThread
+from direction_alternative import direction_alt
 
 
 if __name__ == '__main__':
@@ -28,6 +29,8 @@ if __name__ == '__main__':
     arduino_t = ArduinoThread(zt_dic)
     arduino_t.start()
 
+    # Activate function for inserting direction from keyboard
+    #direction_alt(zt_dic)
     weather_t.join()
     direction_t.join()
     arduino_t.join()
