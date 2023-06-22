@@ -1,3 +1,5 @@
+import torch
+
 from weather_thread import WeatherThread
 from direction_thread import DirectionThread
 from arduino_thread import ArduinoThread
@@ -5,8 +7,9 @@ from direction_alternative import direction_alt
 
 
 if __name__ == '__main__':
+    checkpoint = torch.load("lstm_parameters.pth")
     # start Weather Thread
-    weather_t = WeatherThread()
+    weather_t = WeatherThread(checkpoint)
     weather_t.start()
 
     zt_dic = {

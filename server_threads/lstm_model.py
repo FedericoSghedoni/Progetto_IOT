@@ -59,9 +59,8 @@ class energyLSTM(nn.Module):
         return out
 
 
-def predict(x):
+def predict(x, checkpoint):
     model = energyLSTM()
-    checkpoint = torch.load("lstm_parameters.pth")
     model.load_state_dict(checkpoint["params"])
     standard_scaler = checkpoint["standard_scaler"]
     minmax_scaler = checkpoint["minmax_scaler"]
@@ -135,7 +134,7 @@ if __name__ == '__main__':
                            [1, 2, 22, 19.963, 10.628, 158.0, 0.99436],
                            [1, 2, 23, 19.963, 10.291, 162.0, 0.994853]])
 
-    pred = predict(input_data)
+    pred = predict(input_data, torch.load("lstm_parameters.pth"))
     print(pred)
 
 

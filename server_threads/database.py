@@ -62,10 +62,11 @@ def get_recent_meteo(n=47):
 	#path = r"C:\Users\Serena\Documents\Università\4°-5° anno (21-22, 22-23)\IOT and 3D intelligent systems\IOT_project\Progetto_IOT"
 	connection = sqlite3.connect(os.path.join(path, "Winduino_WebAPP", "database.db"))
 
-	cursor = connection.cursor()
-	result = cursor.execute(f"""SELECT date, hour, temperature, speed, direction, pressure
-	FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}""")
-	return result.fetchall()
+	with connection:
+		cursor = connection.cursor()
+		result = cursor.execute(f"""SELECT date, hour, temperature, speed, direction, pressure
+		FROM meteo ORDER BY date DESC, hour DESC LIMIT {n}""")
+		return result.fetchall()
 
 
 # Modify the power value of one entry of the 'meteo' table. The entry is identified
