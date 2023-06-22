@@ -30,7 +30,7 @@ if __name__ == '__main__':
     arduino_t.start()
 
     # Activate function for inserting direction from keyboard
-    #direction_alt(zt_dic)
+    direction_alt(zt_dic)
     weather_t.join()
-    direction_t.join()
-    arduino_t.join()
+    #direction_t.join()
+    #arduino_t.join()

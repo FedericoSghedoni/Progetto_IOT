@@ -56,6 +56,7 @@ def download():
 	# Create the input for lstm model
 	lstm_in = np.array([month, day, current_hour, temperature, speed, direction, pressure])
 	met = get_recent_meteo()
+	print("dimension meteo: " + str(len(met)))
 	for i in met:
 		i = list(i)
 		d = i.pop(0)
@@ -83,17 +84,17 @@ class WeatherThread(Thread):
 		super(WeatherThread, self).__init__()
 		self.download = download
 
-		schedule.every().hour.at(":47").do(self.download)
+		schedule.every().hour.at(":00").do(self.download)
 
 	def run(self):
 		while True:
 			schedule.run_pending()
-			time.sleep(1)
+			time.sleep(10)
 
 
 if __name__ == "__main__":
-	#download_all()
-	download()
+	download_all()
+	#download()
 	#weather_t = WeatherThread()
 	#weather_t.start()
 	#weather_t.join()
