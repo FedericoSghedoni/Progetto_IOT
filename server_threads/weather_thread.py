@@ -94,7 +94,6 @@ class WeatherThread(Thread):
 		self.download = download
 		self.checkpoint = checkpoint
 
-
 	def run(self):
 		while True:
 			time.sleep(calc_new_delay(3600))

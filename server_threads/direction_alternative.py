@@ -28,17 +28,18 @@ def direction_alt(zones):
 		direction = value
 		for turbine in zones[zone]["turbines"]:
 			client.publish(f"{zone}/{turbine}/direction", str(value).zfill(3))
-			print("published alt dir")
+		print("published alt dir")
 
 	# infinite loop
 	while True:
 		value = input("Please enter a integer between 0 and 359:\n")
 		value = int(value)
 		if abs(direction - value) > 5:
+			direction = value
 			for zone in zones:
 				for turbine in zones[zone]["turbines"]:
 					client.publish(f"{zone}/{turbine}/direction", str(value).zfill(3))
-					print("published alt dir")
+				print("published alt dir")
 
 
 if __name__ == "__main__":
