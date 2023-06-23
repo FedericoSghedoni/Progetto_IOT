@@ -15,6 +15,7 @@ Turbine::Turbine(String zone, String id, int motor_pos) {
   GPin = 10;
   BPin = 9;
   Servo myservo;  // create servo object to control a servo
+  dir;
 }
 
 /*!
@@ -28,11 +29,12 @@ void Turbine::update_state() {
     if(currentstate == 0 && val == 'A') futurestate = 1;
     if(currentstate == 1 && val == '0') {
       futurestate = 0;    
-      //ruota verso vento
+      rotate(dir);
     }
     if(currentstate == 1 && val == '1') {
-      futurestate = 0;    
-      //ruota dir opposta al vento
+      futurestate = 0;
+      setRGB(RED);    
+      rotate(dir+180);
     }
     if(currentstate == 0 && val == 'L') futurestate = 2;
     if(currentstate == 2 && val == '0') {
@@ -46,8 +48,9 @@ void Turbine::update_state() {
     if(currentstate == 0 && val == 'D') futurestate = 3;
     if(currentstate == 3) {
       String direction = Serial.readString();
-      Serial.print(direction); 
-      rotate(direction.toInt());
+      Serial.print(direction);
+      dir = direction.toInt();
+      rotate(dir);
       futurestate = 0;    
     }      
     currentstate = futurestate;

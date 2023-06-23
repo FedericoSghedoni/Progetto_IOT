@@ -27,6 +27,7 @@ private:
   int RPin;
   int GPin;
   int BPin;
+  int dir;
 };
 
 #endif
