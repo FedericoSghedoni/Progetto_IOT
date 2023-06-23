@@ -4,6 +4,8 @@
 #include "Arduino.h"
 #include <Servo.h> 
 
+enum Color{ OFF, RED, ORANGE, YELLOW, GREEN,  BLUE, PURPLE };
+
 /*!
  *   @brief  Class that stores state and functions for interacting with turbine
  */
@@ -16,10 +18,15 @@ public:
   Servo myservo;
 	void update_state();
   void rotate(int pos);
+  void attachRGB();
+  void setRGB(Color color);
 
 private:
   int t_motor_pos;
   int currentstate;
+  int RPin;
+  int GPin;
+  int BPin;
 };
 
 #endif

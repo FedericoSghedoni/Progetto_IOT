@@ -59,9 +59,10 @@ void setup() {
       Serial.println(" Failed to connect to bridge");
       while (1) { delay(10); }
     } 
-
+  
   ina219.setCalibration_16V_400mA();
-
+  
+  turbine.attachRGB();
   turbine.myservo.attach(8);
   
   readtimer = millis() / 1000;
