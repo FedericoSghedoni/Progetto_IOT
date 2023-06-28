@@ -3,8 +3,8 @@
 #include "Serial_Bridge.h"
 #include "Turbine.h"
 
-//Pala 1: 01  001 0
-//Pala 2: 01  002 180
+//Pala 1: 01  001 180
+//Pala 2: 01  002 0
 
 Adafruit_INA219 ina219;
 Turbine turbine("01", "001", 180);
@@ -88,13 +88,13 @@ void loop() {
 
  float revmax = max(loadvoltage, loadmean[0]) * 300;
   
- if((millis() / 1000) - sendtimer >= 5 && revmax > 100){
+ if((millis() / 1000) - sendtimer >= 10 && revmax > 100){
     send_packs();
   }
-  if((millis() / 1000) - sendtimer >= 10 && revmax > 80){
+  if((millis() / 1000) - sendtimer >= 15 && revmax > 80){
     send_packs();
   }
-  else if((millis() / 1000) - sendtimer >= 20){
+  else if((millis() / 1000) - sendtimer >= 25){
     send_packs();
   }
   
