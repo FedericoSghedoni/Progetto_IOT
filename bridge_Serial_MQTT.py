@@ -9,7 +9,7 @@ class Bridge():
 	def __init__(self, port):
 		self.buffer = []
 		self.datiZona = {}
-		self.sogliaMax = 35
+		self.sogliaMax = 135
 		self.sogliaMin = 10
 		self.currentState = 0
 		self.ser = None
@@ -72,10 +72,10 @@ class Bridge():
 
 	# The callback for when a PUBLISH message is received from the server.
 	def on_message(self, client, userdata, msg):
-		print("Received " + msg.topic + " " + str(msg.payload))  # stampa DEBUG
+		#print("Received " + msg.topic + " " + str(msg.payload))  # stampa DEBUG
 		if msg.topic == self.zona + '/' + self.id + '/' + "R_value_":
 			dati = list(self.datiZona.values())
-			#print("Pala " + str(self.id) + " len=" + str(len(dati)))
+			print("Pala " + str(self.id) + " dati:" + str(dati))
 			if len(dati) != 0:
 				media = sum(dati) / len(dati)
 				futureState = None
@@ -84,12 +84,14 @@ class Bridge():
 					if value > self.sogliaMax:
 						futureState = 1
 						self.ser.write(b'L0')  # Spegni Led Malfunzionamento
+						print("Spegni led pala " + str(self.id))
 						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 0)
 					elif value < media-15 or value < 0:  # controllo errori
 						futureState = 2
 					else:
 						futureState = 0
 						self.ser.write(b'L0')  # Spegni Led Malfunzionamento
+						print("Spegni led pala " + str(self.id))
 						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 0)
      
 				elif self.currentState == 1:  # check velocità > media
@@ -102,6 +104,7 @@ class Bridge():
 				elif self.currentState == 2:  # stato intermedio, 2° check errori
 					if value < media-15 or value < 0:
 						self.ser.write(b'L1')  # Accendi Led Malfunzionamento
+						print("Accendi led pala " + str(self.id))
 						self.clientMQTT.publish(self.zona + '/' + self.id + '/' + "Error", 1)
 					futureState = 0
 
@@ -113,12 +116,15 @@ class Bridge():
 					else: futureState = 0
 
 				elif self.currentState == 4:
-					if (time.time() - self.timer)/1000 >= 3000:
+					#print("Differenza tempo " + str(time.time() - self.timer))
+					if (time.time() - self.timer) >= 30:
 						self.ser.write(b'A0')  # Ruota Pale verso vento
 						futureState = 0
+					else:
+						futureState = 4
 
 				self.currentState = futureState
-			#print("Current state " + str(self.currentState) + ", pala id " + str(self.id))
+			print("Current state " + str(self.currentState) + ", pala id " + str(self.id))
 
 		elif msg.topic == self.zona + '/' + self.id + '/' + "direction":
 			print("Direction ricevuta da " + str(self.id))
@@ -154,10 +160,10 @@ class Bridge():
 				self.buffer.append(lastchar)
 
 	def useData(self):
-		for i in range(1, len(self.buffer)):
-			sys.stdout.write(self.buffer[i].decode())
-			sys.stdout.flush()
-		sys.stdout.write('\n')
+		#for i in range(1, len(self.buffer)):
+			#sys.stdout.write(self.buffer[i].decode())
+			#sys.stdout.flush()
+		#sys.stdout.write('\n')
 		# I have received a packet from the serial port. I can use it
 
 		if self.buffer[0] != b'\xff':
@@ -167,7 +173,7 @@ class Bridge():
 		val = ''
 		if numval == 2:
 			val = '0'
-		for i in range (numval):
+		for i in range(numval):
 			if numval - i == 2:
 				val = val + '.'
 			val = val + self.buffer[i+2].decode() # legge valore del pacchetto
@@ -175,7 +181,7 @@ class Bridge():
 		sensor_name = ''
 		SoN = numval + 2
 		sensorLen = len(self.buffer) - (SoN)
-		for j in range (sensorLen):
+		for j in range(sensorLen):
 			sensor_name = sensor_name + str(self.buffer[j + SoN].decode())
 		res, mid = self.clientMQTT.publish(self.zona + '/' + self.id + '/' + sensor_name, val)
 

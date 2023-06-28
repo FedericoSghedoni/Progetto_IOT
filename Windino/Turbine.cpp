@@ -28,7 +28,8 @@ void Turbine::update_state() {
     int futurestate;
     if(currentstate == 0 && val == 'A') futurestate = 1;
     if(currentstate == 1 && val == '0') {
-      futurestate = 0;    
+      futurestate = 0;
+      setRGB(GREEN);     
       rotate(dir);
     }
     if(currentstate == 1 && val == '1') {

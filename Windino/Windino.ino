@@ -7,7 +7,7 @@
 //Pala 2: 01  002 0
 
 Adafruit_INA219 ina219;
-Turbine turbine("01", "001", 180);
+Turbine turbine("01", "002", 0);
 Serial_Bridge bridge_connection(turbine);
 
 int readtimer, sendtimer = 0;
@@ -94,7 +94,7 @@ void loop() {
   if((millis() / 1000) - sendtimer >= 15 && revmax > 80){
     send_packs();
   }
-  else if((millis() / 1000) - sendtimer >= 25){
+  else if((millis() / 1000) - sendtimer >= 20){
     send_packs();
   }
   
