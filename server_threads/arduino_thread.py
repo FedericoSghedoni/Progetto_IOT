@@ -49,7 +49,6 @@ def on_message(client, userdata, msg):
 	else:  # mA_value_
 		turbine_register[key][topic[2]] = float(msg.payload.decode()) * 2
 
-	turbine_register[key][topic[2]] = msg.payload.decode()
 	if len(turbine_register[key]) == 4:
 		insert_arduino(topic[0], topic[1], date.today(), datetime.now().strftime("%H:%M:%S"), turbine_register[key])
 		turbine_register[key] = {}
@@ -94,6 +93,6 @@ if __name__ == "__main__":
 			"turbines": ["003"],
 		}
 	}
-	#arduino_t = ArduinoThread(zt_dic)
-	#arduino_t.start()
-	update()
+	arduino_t = ArduinoThread(zt_dic)
+	arduino_t.start()
+	#update()
