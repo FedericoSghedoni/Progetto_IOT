@@ -45,7 +45,7 @@ def on_message(client, userdata, msg):
 		else:
 			turbine_register[key][topic[2]] = 'OK'
 	elif topic[2] == 'R_value_':
-		turbine_register[key][topic[2]] = float(msg.payload.decode()) / 10
+		turbine_register[key][topic[2]] = float(msg.payload.decode()) / 8
 	else:  # mA_value_
 		turbine_register[key][topic[2]] = float(msg.payload.decode()) * 2
 
