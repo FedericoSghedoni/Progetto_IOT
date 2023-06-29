@@ -28,7 +28,7 @@ def direction_alt(zones):
 		direction = value
 		for turbine in zones[zone]["turbines"]:
 			client.publish(f"{zone}/{turbine}/direction", str(value).zfill(3))
-		print("published alt dir")
+	print("published alternative dir")
 
 	# infinite loop
 	while True:
@@ -39,7 +39,7 @@ def direction_alt(zones):
 			for zone in zones:
 				for turbine in zones[zone]["turbines"]:
 					client.publish(f"{zone}/{turbine}/direction", str(value).zfill(3))
-				print("published alt dir")
+			print("published alternative direction dir")
 
 
 if __name__ == "__main__":
