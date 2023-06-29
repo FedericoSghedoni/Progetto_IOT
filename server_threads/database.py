@@ -85,14 +85,22 @@ if __name__ == '__main__':
 	# Run create_tables only if the db doesn't already exist
 	#create_tables()
 
-	dic = {
-		"mA_value_": 200,
-		"mW_value_": 200,
-		"Error": "no error",
-		"R_value_": 10
-	}
+	import random
+	zones = ["01", "02", "03"]
+	turbs = ["001", "002", "003"]
+	hours = ["00","01", "02","03", "04", "05", "06", "07", "08"]
+	mins = ["00", "10", "20", "30", "40", "50"]
+	for zone in zones:
+		for turb in turbs:
+			for hour in hours:
+				for mi in mins:
+					d = {"mA_value_": round(random.uniform(30.00, 50.00), 2),
+						 "mW_value_": round(random.uniform(500.00, 2500.00), 2),
+						 "Error": "OK",
+						 "R_value_": round(random.uniform(15.00, 32.00), 2)}
+					insert_arduino(zone, turb, "2023-06-30", hour+":"+mi+":00", d)
 	# Insert the dic values inside arduino table
-	insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
+	#insert_arduino("01", "001", "2023-03-01", "17:50:00", dic)
 
 	# Return info for the specified turbine
 	#get_turbin_info("001")
